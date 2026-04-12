@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<!--
+  iPad Casio-Style Clock — Home Screen Web App
+  =============================================
+  Target: iPad Air, iOS 12.5 Safari (Add to Home Screen)
+
+  REQUIREMENTS TO RUN:
+  1. Install mkcert: https://github.com/FiloSottile/mkcert
+       brew install mkcert && mkcert -install
+  2. Generate local certs in this directory:
+       mkcert -key-file key.pem -cert-file cert.pem 192.168.x.x localhost 127.0.0.1
+       (replace 192.168.x.x with your machine's LAN IP)
+  3. On iPad: open https://192.168.x.x:8443 in Safari → accept cert warning
+     Then: Settings → General → About → Certificate Trust Settings → trust the mkcert CA
+     (Or: visit http://rootCA.pem URL printed by mkcert-install and install the profile)
+  4. Start server: node server.js
+  5. On iPad: navigate to https://192.168.x.x:8443 → Share → Add to Home Screen
+-->
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Clock">
+  <meta name="theme-color" content="#0a0a0a">
+  <title>Clock</title>
+
+  <!-- Bebas Neue for the flip-card digits -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-theme="minimalism">
+
+  <!-- Scanline + grain overlays (positioned via CSS ::before / ::after on body) -->
+
+  <div id="app">
+
+    <!-- ═══════════════ TOP: Flip Clock ═══════════════ -->
+    <section id="clock-section">
+
+      <!-- ── LCD Clock (shown when data-theme="lcd") ── -->
+      <div id="lcd-clock">
+        <div id="lcd-header">
+          <span id="lcd-header-left">&#9650; CASIO &#8594; WORLD TIME</span>
+          <span id="lcd-header-right">
+            <span class="lcd-dot">&#9679;</span>
+            <span class="lcd-dot">&#9679;</span>
+            <span class="lcd-badge">24H</span>
+          </span>
+        </div>
+        <div id="lcd-digits">
+          <!-- Hours -->
+          <div class="flip-group" id="flip-lcd-hh">
+            <div class="flip-card lcd-flip" id="flip-lcd-hh-0">
+              <div class="flip-static-top"><span>0</span></div>
+              <div class="flip-static-bot"><span>0</span></div>
+              <div class="flip-anim">
+                <div class="flip-anim-top"><span>0</span></div>
+                <div class="flip-anim-bot"><span>0</span></div>
+              </div>
+            </div>
+            <div class="flip-card lcd-flip" id="flip-lcd-hh-1">
+              <div class="flip-static-top"><span>0</span></div>
+              <div class="flip-static-bot"><span>0</span></div>
+              <div class="flip-anim">
+                <div class="flip-anim-top"><span>0</span></div>
+                <div class="flip-anim-bot"><span>0</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="flip-sep lcd-flip-sep" id="lcd-col">:</div>
+          <!-- Minutes -->
+          <div class="flip-group" id="flip-lcd-mm">
+            <div class="flip-card lcd-flip" id="flip-lcd-mm-0">
+              <div class="flip-static-top"><span>0</span></div>
+              <div class="flip-static-bot"><span>0</span></div>
+              <div class="flip-anim">
+                <div class="flip-anim-top"><span>0</span></div>
+                <div class="flip-anim-bot"><span>0</span></div>
+              </div>
+            </div>
+            <div class="flip-card lcd-flip" id="flip-lcd-mm-1">
+              <div class="flip-static-top"><span>0</span></div>
+              <div class="flip-static-bot"><span>0</span></div>
+              <div class="flip-anim">
+                <div class="flip-anim-top"><span>0</span></div>
+                <div class="flip-anim-bot"><span>0</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="lcd-date">LUN01-ENE-2025</div>
+      </div>
+
+      <!-- ── Flip Clock (shown when data-theme="flip") ── -->
+      <div id="clock-widget">
+        <div id="clock-meta">
+          <span id="casio-day">MONDAY</span>
+          <span id="casio-date">01.JAN.2025</span>
+          <span id="casio-ampm">AM</span>
+        </div>
+        <div id="flip-clock">
+          <!-- Hours -->
+          <div class="flip-group" id="flip-hh">
+            <div class="flip-card" id="flip-hh-0">
+              <div class="flip-static-top"><span>0</span></div>
+              <div class="flip-static-bot"><span>0</span></div>
+              <div class="flip-anim">
+                <div class="flip-anim-top"><span>0</span></div>
+                <div class="flip-anim-bot"><span>0</span></div>
+              </div>
+            </div>
+            <div class="flip-card" id="flip-hh-1">
+              <div class="flip-static-top"><span>0</span></div>
+              <div class="flip-static-bot"><span>0</span></div>
+              <div class="flip-anim">
+                <div class="flip-anim-top"><span>0</span></div>
+                <div class="flip-anim-bot"><span>0</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="flip-sep" id="flip-col1">:</div>
+          <!-- Minutes -->
+          <div class="flip-group" id="flip-mm">
+            <div class="flip-card" id="flip-mm-0">
+              <div class="flip-static-top"><span>0</span></div>
+              <div class="flip-static-bot"><span>0</span></div>
+              <div class="flip-anim">
+                <div class="flip-anim-top"><span>0</span></div>
+                <div class="flip-anim-bot"><span>0</span></div>
+              </div>
+            </div>
+            <div class="flip-card" id="flip-mm-1">
+              <div class="flip-static-top"><span>0</span></div>
+              <div class="flip-static-bot"><span>0</span></div>
+              <div class="flip-anim">
+                <div class="flip-anim-top"><span>0</span></div>
+                <div class="flip-anim-bot"><span>0</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="flip-sep" id="flip-col2">:</div>
+          <!-- Seconds -->
+          <div class="flip-group" id="flip-ss">
+            <div class="flip-card" id="flip-ss-0">
+              <div class="flip-static-top"><span>0</span></div>
+              <div class="flip-static-bot"><span>0</span></div>
+              <div class="flip-anim">
+                <div class="flip-anim-top"><span>0</span></div>
+                <div class="flip-anim-bot"><span>0</span></div>
+              </div>
+            </div>
+            <div class="flip-card" id="flip-ss-1">
+              <div class="flip-static-top"><span>0</span></div>
+              <div class="flip-static-bot"><span>0</span></div>
+              <div class="flip-anim">
+                <div class="flip-anim-top"><span>0</span></div>
+                <div class="flip-anim-bot"><span>0</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- AM/PM label: shown only in minimalism theme -->
+        <div id="minimalism-ampm-row"><span id="minimalism-ampm">AM</span></div>
+      </div><!-- /#clock-widget -->
+
+    </section>
+
+    <!-- ═══════════════ RIGHT / BOTTOM-LEFT: Weather ═══════════════ -->
+    <section id="weather-section">
+      <div id="weather-card" class="glass-card">
+        <div id="weather-content">
+          <span id="weather-icon" class="weather-icon">
+            <!-- Spinner while loading -->
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+              <circle cx="16" cy="16" r="12" stroke="#444" stroke-width="2"/>
+              <path d="M16 4a12 12 0 0 1 12 12" stroke="#c8a84b" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </span>
+          <span id="weather-temp" class="weather-temp">--°C</span>
+          <span id="weather-label" class="weather-label">Obteniendo ubicación…</span>
+        </div>
+        <!-- LCD-theme extra weather details -->
+        <div id="weather-details">
+          <div class="wd-row"><span class="wd-key">RAIN</span><span id="wd-rain" class="wd-val">--%</span></div>
+          <div class="wd-row"><span class="wd-key">FEEL</span><span id="wd-feel" class="wd-val">--°</span></div>
+          <div class="wd-row"><span class="wd-key">HUM</span><span id="wd-hum" class="wd-val">--%</span></div>
+          <div class="wd-row"><span class="wd-key">WIND</span><span id="wd-wind" class="wd-val">-- KM/H</span></div>
+          <div class="wd-row"><span class="wd-key">UV</span><span id="wd-uv" class="wd-val">-</span></div>
+        </div>
+        <!-- Sunrise/sunset — visible in both themes -->
+        <div id="weather-sun">
+          <span id="wd-sunup">&#8593; --:--</span>
+          <span id="wd-sundown">&#8595; --:--</span>
+        </div>
+        <div id="weather-updated">ACT: --:--</div>
+      </div>
+    </section>
+
+    <!-- ═══════════════ RIGHT / BOTTOM-RIGHT: Calendar ═══════════════ -->
+    <section id="calendar-section">
+      <div id="calendar-card" class="glass-card">
+        <div id="calendar-header">
+          <span class="card-title" id="cal-title">PRÓXIMOS EVENTOS</span>
+        </div>
+        <div id="cal-countdown"></div>
+        <div id="calendar-list">
+          <div class="event-empty">Sin calendarios configurados.<br>Pulsa ⚙ para añadir tus URLs de Google Calendar.</div>
+        </div>
+      </div>
+    </section>
+
+  </div><!-- /#app -->
+
+  <!-- ═══════════════ Settings Panel ═══════════════ -->
+  <button id="btn-color" aria-label="Cambiar color de tema" title="Cambiar color">
+    <svg viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.5"/>
+      <circle cx="12" cy="12" r="6" fill="#c8a84b" id="btn-color-fill"/>
+    </svg>
+  </button>
+
+  <button id="theme-btn" aria-label="Cambiar tema" title="Cambiar tema">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="3" width="8" height="8" rx="1"/>
+      <rect x="13" y="3" width="8" height="8" rx="1"/>
+      <rect x="3" y="13" width="8" height="8" rx="1"/>
+      <path d="M17 13v8M13 17h8"/>
+    </svg>
+  </button>
+
+  <button id="settings-btn" aria-label="Ajustes">
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+    </svg>
+  </button>
+
+  <!-- Corner weather: shown only in minimalism theme -->
+  <div id="corner-weather">
+    <span id="corner-weather-icon"></span>
+    <span id="corner-weather-temp"></span>
+    <span id="corner-weather-label"></span>
+  </div>
+
+  <!-- ═══════════════ Calendar Slide-up Panel ═══════════════ -->
+  <div id="cal-panel-overlay"></div>
+  <div id="cal-panel" role="dialog" aria-label="Calendarios">
+    <div id="cal-panel-drag"></div>
+    <div id="cal-panel-inner">
+
+      <!-- Feed 1 -->
+      <div class="cp-section" id="cp-section-0">
+        <button class="cp-header" id="cp-header-0" type="button">
+          <span class="cp-dot" id="cp-dot-0"></span>
+          <span class="cp-name" id="cp-name-0">Yo</span>
+          <svg class="cp-arrow" viewBox="0 0 10 10" width="12" height="12" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 2l4 3-4 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <div class="cp-list" id="cp-list-0"></div>
+      </div>
+
+      <!-- Feed 2 -->
+      <div class="cp-section" id="cp-section-1">
+        <button class="cp-header" id="cp-header-1" type="button">
+          <span class="cp-dot" id="cp-dot-1"></span>
+          <span class="cp-name" id="cp-name-1">Pareja</span>
+          <svg class="cp-arrow" viewBox="0 0 10 10" width="12" height="12" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 2l4 3-4 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <div class="cp-list" id="cp-list-1"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="settings-overlay"></div>
+  <div id="settings-panel" role="dialog" aria-label="Panel de ajustes">
+    <div class="settings-header">
+      <span class="settings-title">AJUSTES</span>
+      <button id="settings-close" aria-label="Cerrar ajustes">✕</button>
+    </div>
+
+    <div class="settings-section-label">CALENDARIO 1 — Yo</div>
+    <div class="settings-row">
+      <input type="text" id="feed1-url" class="settings-input" placeholder="URL iCal de Google Calendar…" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
+      <input type="color" id="feed1-color" class="settings-color" value="#00f0ff">
+      <input type="text" id="feed1-name" class="settings-name" placeholder="Mi nombre" autocorrect="off">
+    </div>
+
+    <div class="settings-section-label">CALENDARIO 2 — Pareja</div>
+    <div class="settings-row">
+      <input type="text" id="feed2-url" class="settings-input" placeholder="URL iCal de Google Calendar…" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
+      <input type="color" id="feed2-color" class="settings-color" value="#00ff88">
+      <input type="text" id="feed2-name" class="settings-name" placeholder="Nombre pareja" autocorrect="off">
+    </div>
+
+    <div class="settings-hint">
+      En Google Calendar: ⚙ → Ajustes del calendario → "Dirección secreta en formato iCal"<br>
+      Solo funcionan URLs de Google Calendar (restricción CORS del navegador).
+    </div>
+
+    <div class="settings-hint settings-hint-wake">
+      Para mantener la pantalla encendida:<br>
+      Ajustes iOS → Pantalla y brillo → Bloqueo automático → Nunca
+    </div>
+
+    <div class="settings-section-label">MINIMALISM</div>
+    <div class="settings-row settings-row--opt">
+      <span class="settings-opt-label">Segundos</span>
+      <div class="settings-btn-group" id="minimalism-seconds-group">
+        <button class="settings-group-btn" data-seconds="show">S&#237;</button>
+        <button class="settings-group-btn" data-seconds="hide">No</button>
+      </div>
+    </div>
+    <div class="settings-row settings-row--opt">
+      <span class="settings-opt-label">Tama&#241;o</span>
+      <div class="settings-btn-group" id="minimalism-size-group">
+        <button class="settings-group-btn" data-size="small">P</button>
+        <button class="settings-group-btn" data-size="medium">M</button>
+        <button class="settings-group-btn" data-size="large">G</button>
+      </div>
+    </div>
+
+    <div class="settings-actions">
+      <button id="settings-save" class="btn-save">GUARDAR</button>
+    </div>
+  </div>
+
+  <!-- Wake-lock hint: shown until first touch activates AudioContext -->
+  <div id="wake-lock-hint">Toca para mantener la pantalla encendida</div>
+
+  <!-- Night dim overlay: fades in after sunset, tap to dismiss for 5 min -->
+  <div id="dim-overlay"></div>
+
+  <!-- Service Worker registration (must be synchronous, not deferred) -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      try {
+        navigator.serviceWorker.register('/sw.js').then(function(reg) {
+          console.log('[SW] Registrado:', reg.scope);
+        }).catch(function(err) {
+          console.warn('[SW] Error de registro:', err);
+        });
+      } catch(e) {
+        console.warn('[SW] No disponible:', e);
+      }
+    }
+  </script>
+
+  <script src="app.js" defer></script>
+</body>
+</html>

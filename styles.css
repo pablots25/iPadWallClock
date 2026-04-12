@@ -1,0 +1,1818 @@
+/* ==========================================================
+   iPad Casio-Style Clock — styles.css
+   Target: iPad Air, iOS 12.5 Safari
+   ========================================================== */
+
+/* ── Custom Properties ─────────────────────────────────── */
+:root {
+  --bg: #111110;
+  --bg2: #1a1917;
+  --lcd:  #c8a84b;       /* warm Casio amber/gold */
+  --lcd2: #8fb87a;       /* secondary green (weather) */
+  --text: #d4d0c8;
+  --text-dim: #666655;
+  --card-bg: rgba(255, 255, 255, 0.03);
+  --card-border: rgba(255, 255, 255, 0.07);
+  --card-radius: 12px;
+  --font-digital: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif;
+  --font-ui: system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  /* flip card sizing */
+  --flip-h: clamp(90px, 17vw, 160px);
+  --flip-w: clamp(66px, 12vw, 116px);
+  --flip-r: 6px;
+  --flip-fs: clamp(72px, 14vw, 128px);
+}
+
+/* ── Reset ─────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-family: var(--font-ui);
+}
+
+/* ── Scanline overlay ──────────────────────────────────── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  top: 0; right: 0; bottom: 0; left: 0; /* iOS 12 fallback for inset */
+  pointer-events: none;
+  z-index: 9998;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 2px,
+    rgba(0, 0, 0, 0.07) 2px,
+    rgba(0, 0, 0, 0.07) 4px
+  );
+}
+
+/* ── Grain / noise overlay ─────────────────────────────── */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  top: 0; right: 0; bottom: 0; left: 0;
+  pointer-events: none;
+  z-index: 9997;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  background-size: 300px 300px;
+}
+
+/* ── App Grid — Portrait ───────────────────────────────── */
+#app {
+  display: -ms-grid;
+  display: grid;
+  width: 100%;
+  height: 100%;
+  /* portrait: clock | weather | calendar stacked */
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr auto auto;
+  -ms-grid-columns: 1fr;
+  -ms-grid-rows: 1fr auto auto;
+  grid-gap: 8px;
+  gap: 8px;
+  padding: 8px;
+  padding-top: calc(8px + env(safe-area-inset-top));
+  padding-bottom: calc(8px + env(safe-area-inset-bottom));
+  padding-left: calc(8px + env(safe-area-inset-left));
+  padding-right: calc(8px + env(safe-area-inset-right));
+}
+
+#clock-section    { grid-column: 1; grid-row: 1; display: flex; align-items: center; justify-content: center; }
+#weather-section  { grid-column: 1; grid-row: 2; }
+#calendar-section { grid-column: 1; grid-row: 3; }
+
+/* ── App Grid — Landscape ──────────────────────────────── */
+@media (orientation: landscape) {
+  #app {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    -ms-grid-columns: 1fr 1fr;
+    -ms-grid-rows: 1fr 1fr;
+    grid-gap: 10px;
+    gap: 10px;
+  }
+
+  #clock-section {
+    grid-column: 1;
+    grid-row: 1 / 3;
+  }
+
+  /* Re-layout landscape: clock left, right col scrollable */
+  #app {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+    grid-template-rows: 1fr 1fr;
+  }
+
+  #clock-section    { grid-column: 1; grid-row: 1 / 3; }
+  #weather-section  { grid-column: 2; grid-row: 1; align-self: stretch; display: -webkit-box; display: -ms-flexbox; display: flex; -webkit-box-orient: vertical; -webkit-box-direction: normal; -ms-flex-direction: column; flex-direction: column; }
+  #calendar-section { grid-column: 2; grid-row: 2; align-self: stretch; display: -webkit-box; display: -ms-flexbox; display: flex; -webkit-box-orient: vertical; -webkit-box-direction: normal; -ms-flex-direction: column; flex-direction: column; }
+  #weather-section > .glass-card,
+  #calendar-section > .glass-card { -webkit-box-flex: 1; -ms-flex: 1; flex: 1; }
+}
+
+/* ── Flip Clock Widget ─────────────────────────────────── */
+#clock-section {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  padding: 0;
+}
+
+#clock-widget {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  gap: 6px;
+  grid-gap: 6px;
+}
+
+#clock-meta {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  gap: 16px;
+  grid-gap: 16px;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  font-family: var(--font-digital);
+  font-size: clamp(11px, 1.8vw, 15px);
+  color: var(--text-dim);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+#casio-day  { color: var(--text-dim); }
+#casio-date { color: var(--text-dim); }
+#casio-ampm { color: var(--lcd); opacity: 0.75; }
+
+/* ── Flip clock row ── */
+#flip-clock {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  gap: 6px;
+  grid-gap: 6px;
+}
+
+.flip-group {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  gap: 4px;
+  grid-gap: 4px;
+}
+
+.flip-sep {
+  font-family: var(--font-digital);
+  font-size: calc(var(--flip-fs) * 0.6);
+  color: var(--lcd);
+  opacity: 0.45;
+  line-height: 1;
+  -webkit-align-self: center;
+  -ms-flex-item-align: center;
+  align-self: center;
+  margin: 0 1px;
+  padding-bottom: 6px;
+}
+
+/* ── Individual flip card ── */
+.flip-card {
+  position: relative;
+  width: var(--flip-w);
+  height: var(--flip-h);
+  -webkit-perspective: 500px;
+  perspective: 500px;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  box-shadow:
+    0 6px 24px rgba(0,0,0,0.75),
+    0 2px 6px  rgba(0,0,0,0.9),
+    inset 0 1px 0 rgba(255,255,255,0.04);
+  border-radius: var(--flip-r);
+}
+
+/* Static top half */
+.flip-static-top {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 50%;
+  overflow: hidden;
+  background: linear-gradient(to bottom, #2b2927, #1e1c1a);
+  border-radius: var(--flip-r) var(--flip-r) 0 0;
+  border-bottom: 2px solid #050504;
+  box-shadow: inset 0 2px 4px rgba(255,255,255,0.03);
+  z-index: 1;
+}
+
+/* Static bottom half */
+.flip-static-bot {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 50%;
+  overflow: hidden;
+  background: linear-gradient(to bottom, #1a1917, #252321);
+  border-radius: 0 0 var(--flip-r) var(--flip-r);
+  box-shadow: inset 0 -2px 4px rgba(0,0,0,0.4);
+  z-index: 1;
+}
+
+.flip-static-top span,
+.flip-static-bot span,
+.flip-anim-top span,
+.flip-anim-bot span {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  width: var(--flip-w);
+  height: var(--flip-h);
+  font-family: var(--font-digital);
+  font-size: var(--flip-fs);
+  font-weight: 400;
+  color: var(--lcd);
+  letter-spacing: 0.01em;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.flip-static-bot span,
+.flip-anim-bot span {
+  margin-top: calc(var(--flip-h) * -0.5);
+}
+
+/* ── Animated flap ── */
+.flip-anim {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.flip-anim-top {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 50%;
+  overflow: hidden;
+  background: linear-gradient(to bottom, #2b2927, #1e1c1a);
+  border-radius: var(--flip-r) var(--flip-r) 0 0;
+  -webkit-transform-origin: bottom center;
+  transform-origin: bottom center;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  -webkit-transform: rotateX(0deg);
+  transform: rotateX(0deg);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+}
+
+.flip-anim-bot {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 50%;
+  overflow: hidden;
+  background: linear-gradient(to bottom, #1a1917, #252321);
+  border-radius: 0 0 var(--flip-r) var(--flip-r);
+  -webkit-transform-origin: top center;
+  transform-origin: top center;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  -webkit-transform: rotateX(90deg);
+  transform: rotateX(90deg);
+  box-shadow: 0 -2px 6px rgba(0,0,0,0.5);
+}
+
+.flip-card.flipping .flip-anim-top {
+  -webkit-animation: flip-fold 0.22s ease-in forwards;
+  animation: flip-fold 0.22s ease-in forwards;
+}
+
+.flip-card.flipping .flip-anim-bot {
+  -webkit-animation: flip-unfold 0.22s ease-out 0.22s forwards;
+  animation: flip-unfold 0.22s ease-out 0.22s forwards;
+}
+
+@-webkit-keyframes flip-fold {
+  0%   { -webkit-transform: rotateX(0deg);   box-shadow: 0 2px 6px rgba(0,0,0,0.5); }
+  100% { -webkit-transform: rotateX(-90deg); box-shadow: 0 8px 20px rgba(0,0,0,0.8); }
+}
+@keyframes flip-fold {
+  0%   { transform: rotateX(0deg);   box-shadow: 0 2px 6px rgba(0,0,0,0.5); }
+  100% { transform: rotateX(-90deg); box-shadow: 0 8px 20px rgba(0,0,0,0.8); }
+}
+
+@-webkit-keyframes flip-unfold {
+  0%   { -webkit-transform: rotateX(90deg);  box-shadow: 0 -8px 20px rgba(0,0,0,0.8); }
+  100% { -webkit-transform: rotateX(0deg);   box-shadow: 0 -2px 6px rgba(0,0,0,0.3); }
+}
+@keyframes flip-unfold {
+  0%   { transform: rotateX(90deg);  box-shadow: 0 -8px 20px rgba(0,0,0,0.8); }
+  100% { transform: rotateX(0deg);   box-shadow: 0 -2px 6px rgba(0,0,0,0.3); }
+}
+
+
+/* ── Glass Cards ───────────────────────────────────────── */
+.glass-card {
+  background: var(--card-bg);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--card-border);
+  border-radius: var(--card-radius);
+  padding: 10px 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+}
+
+.card-title {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+}
+
+/* ── Weather Card ──────────────────────────────────────── */
+#weather-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.weather-icon {
+  flex-shrink: 0;
+}
+
+.weather-icon svg {
+  display: block;
+}
+
+.weather-temp {
+  font-family: var(--font-digital);
+  font-size: clamp(22px, 4vw, 38px);
+  color: var(--lcd2);
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.weather-label {
+  font-family: var(--font-ui);
+  font-size: clamp(9px, 1.5vw, 13px);
+  color: var(--text-dim);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.weather-error {
+  color: var(--amber);
+  font-size: 11px;
+  font-family: var(--font-ui);
+}
+
+/* ── Calendar Card ─────────────────────────────────────── */
+#calendar-header {
+  margin-bottom: 10px;
+}
+
+#calendar-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.event-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  border-left: 2px solid transparent;
+  transition: background 0.2s;
+}
+
+.event-item.today {
+  background: rgba(255, 170, 0, 0.07);
+  border-left-color: var(--amber);
+}
+
+.event-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 3px;
+  box-shadow: 0 0 6px currentColor;
+}
+
+.event-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.event-time {
+  font-family: var(--font-digital);
+  font-size: 10px;
+  color: var(--text-dim);
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.event-title {
+  font-family: var(--font-ui);
+  font-size: clamp(10px, 1.5vw, 13px);
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+}
+
+.event-empty {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  color: var(--text-dim);
+  line-height: 1.6;
+  text-align: center;
+  padding: 12px 0;
+}
+
+.event-feed-label {
+  font-size: 8px;
+  color: var(--text-dim);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+/* ── Settings Button ───────────────────────────────────── */
+#settings-btn {
+  position: fixed;
+  bottom: calc(20px + env(safe-area-inset-bottom));
+  right: calc(20px + env(safe-area-inset-right));
+  z-index: 10000;
+  width: 44px;
+  height: 44px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--card-border);
+  color: var(--text-dim);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  -webkit-tap-highlight-color: transparent;
+  transition: color 0.2s, background 0.2s;
+}
+
+#settings-btn:active {
+  color: var(--lcd);
+  background: rgba(200, 168, 75, 0.1);
+}
+
+/* ── Settings Overlay ──────────────────────────────────── */
+#settings-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  top: 0; right: 0; bottom: 0; left: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 10001;
+}
+
+#settings-overlay.is-open {
+  display: block;
+}
+
+/* ── Settings Panel ────────────────────────────────────── */
+#settings-panel {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  -webkit-transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%);
+  z-index: 10002;
+  width: min(90vw, 520px);
+  /* iOS 12 fallback */
+  width: 90vw;
+  max-width: 520px;
+  padding: 24px;
+  background: rgba(10, 10, 26, 0.95);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(200, 168, 75, 0.12);
+  border-radius: 16px;
+  flex-direction: column;
+  grid-gap: 16px;
+  gap: 16px;
+}
+
+#settings-panel.is-open {
+  display: flex;
+}
+
+.settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.settings-title {
+  font-family: var(--font-ui);
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  color: var(--lcd);
+  font-weight: 600;
+}
+
+#settings-close {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#settings-close:active {
+  color: var(--text);
+  background: rgba(255,255,255,0.05);
+}
+
+.settings-section-label {
+  font-family: var(--font-ui);
+  font-size: 9px;
+  letter-spacing: 0.25em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  padding-top: 8px;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.settings-input {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: var(--font-digital);
+  font-size: 11px;
+  padding: 10px 12px;
+  outline: none;
+  -webkit-appearance: none;
+  min-width: 0;
+}
+
+.settings-input:focus {
+  border-color: rgba(200, 168, 75, 0.4);
+  box-shadow: 0 0 0 2px rgba(200, 168, 75, 0.1);
+}
+
+.settings-color {
+  width: 38px;
+  height: 38px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  background: none;
+  padding: 2px;
+  cursor: pointer;
+  flex-shrink: 0;
+  -webkit-appearance: none;
+}
+
+.settings-name {
+  width: 100px;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 11px;
+  padding: 10px 10px;
+  outline: none;
+  -webkit-appearance: none;
+}
+
+.settings-name:focus {
+  border-color: rgba(143, 184, 122, 0.4);
+}
+
+.settings-hint {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  color: var(--text-dim);
+  line-height: 1.7;
+  padding: 8px 12px;
+  background: rgba(255, 170, 0, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 170, 0, 0.1);
+}
+
+.settings-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 4px;
+}
+
+/* ── Minimalism option rows ───────────────────────────────── */
+.settings-row--opt {
+  -webkit-box-pack: justify;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
+  padding: 3px 0;
+}
+
+.settings-opt-label {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  color: var(--text);
+  letter-spacing: 0.04em;
+}
+
+.settings-btn-group {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  gap: 4px;
+  grid-gap: 4px;
+}
+
+.settings-group-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.40);
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 7px 14px;
+  cursor: pointer;
+  -webkit-appearance: none;
+}
+
+.settings-group-btn.is-active {
+  background: rgba(200, 168, 75, 0.15);
+  border-color: rgba(200, 168, 75, 0.50);
+  color: var(--lcd);
+}
+
+.btn-save {
+  background: rgba(200, 168, 75, 0.1);
+  border: 1px solid rgba(200, 168, 75, 0.35);
+  border-radius: 8px;
+  color: var(--lcd);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  padding: 10px 24px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s;
+}
+
+.btn-save:active {
+  background: rgba(200, 168, 75, 0.22);
+}
+
+/* ═══════════════════════════════════════════════════════
+   LCD THEME — CASIO 7-Segment LCD style
+   Active when: body[data-theme="lcd"]
+   ═══════════════════════════════════════════════════════ */
+
+/* ── Theme: visibility toggles ─────────────────────────── */
+/* Flip theme (default) */
+[data-theme="flip"] #lcd-clock       { display: none !important; }
+[data-theme="flip"] #weather-details { display: none !important; }
+
+/* LCD theme */
+[data-theme="lcd"] #clock-widget     { display: none !important; }
+[data-theme="lcd"] #lcd-clock        { display: -webkit-box; display: -ms-flexbox; display: flex; }
+[data-theme="lcd"] #weather-details  { display: -webkit-box; display: -ms-flexbox; display: flex; }
+/* In LCD theme, glass cards become flat bordered boxes */
+[data-theme="lcd"] .glass-card {
+  background: rgba(0, 0, 0, 0.5);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  border: 1px solid rgba(200, 168, 75, 0.28);
+  border-radius: 4px;
+}
+[data-theme="lcd"] .glass-card::before { display: none; }
+
+/* ── LCD Theme: App Grid (landscape-first layout) ──────── */
+[data-theme="lcd"] #app {
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr auto auto;
+  grid-gap: 10px;
+  gap: 10px;
+  padding: 12px;
+  padding-top: calc(12px + env(safe-area-inset-top));
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+}
+
+[data-theme="lcd"] #clock-section   { grid-column: 1; grid-row: 1; }
+[data-theme="lcd"] #weather-section { grid-column: 1; grid-row: 2; }
+[data-theme="lcd"] #calendar-section { grid-column: 1; grid-row: 3; }
+
+@media (orientation: landscape) {
+  [data-theme="lcd"] #app {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr auto;
+    grid-gap: 10px;
+    gap: 10px;
+  }
+
+  [data-theme="lcd"] #clock-section    { grid-column: 1 / 3; grid-row: 1; }
+  [data-theme="lcd"] #weather-section  { grid-column: 1; grid-row: 2; align-self: stretch; display: -webkit-box; display: -ms-flexbox; display: flex; -webkit-box-orient: vertical; -webkit-box-direction: normal; -ms-flex-direction: column; flex-direction: column; }
+  [data-theme="lcd"] #calendar-section { grid-column: 2; grid-row: 2; align-self: stretch; display: -webkit-box; display: -ms-flexbox; display: flex; -webkit-box-orient: vertical; -webkit-box-direction: normal; -ms-flex-direction: column; flex-direction: column; }
+  [data-theme="lcd"] #weather-section > .glass-card,
+  [data-theme="lcd"] #calendar-section > .glass-card { -webkit-box-flex: 1; -ms-flex: 1; flex: 1; }
+}
+
+/* ── LCD Clock container ───────────────────────────────── */
+#lcd-clock {
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  gap: 8px;
+  grid-gap: 8px;
+  width: 100%;
+  border: 1px solid rgba(200, 168, 75, 0.28);
+  border-radius: 4px;
+  padding: 16px 20px 20px;
+  background: rgba(0, 0, 0, 0.45);
+  position: relative;
+}
+
+/* ── LCD header bar ────────────────────────────────────── */
+#lcd-header {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: justify;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  width: 100%;
+  font-family: var(--font-ui);
+  font-size: clamp(9px, 1.4vw, 12px);
+  letter-spacing: 0.12em;
+  color: rgba(200, 168, 75, 0.55);
+  text-transform: uppercase;
+  border-bottom: 1px solid rgba(200, 168, 75, 0.15);
+  padding-bottom: 8px;
+  margin-bottom: 4px;
+}
+
+#lcd-header-right {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  gap: 5px;
+  grid-gap: 5px;
+}
+
+.lcd-dot {
+  font-size: 7px;
+  color: rgba(200, 168, 75, 0.4);
+}
+
+.lcd-badge {
+  font-family: var(--font-ui);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: rgba(200, 168, 75, 0.65);
+  border: 1px solid rgba(200, 168, 75, 0.35);
+  padding: 1px 4px;
+  border-radius: 2px;
+}
+
+/* ── LCD Digits ────────────────────────────────────────── */
+#lcd-digits {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  gap: 8px;
+  grid-gap: 8px;
+  line-height: 1;
+}
+
+/* ── LCD flip card — sizing overrides ─────────────────── */
+.lcd-flip {
+  --flip-h: clamp(82px, 15vw, 150px);
+  --flip-w: clamp(60px, 10.8vw, 108px);
+  --flip-fs: clamp(64px, 12vw, 118px);
+  --flip-r: 5px;
+  box-shadow:
+    0 0 22px rgba(200, 168, 75, 0.14),
+    0 6px 24px rgba(0, 0, 0, 0.75),
+    0 2px 6px  rgba(0, 0, 0, 0.9),
+    inset 0 1px 0 rgba(200, 168, 75, 0.08);
+}
+
+/* LCD card panel backgrounds — amber-dark tint */
+.lcd-flip .flip-static-top,
+.lcd-flip .flip-anim-top {
+  background: linear-gradient(to bottom, #1b1506, #110e05);
+  border-bottom-color: #060401;
+  box-shadow: inset 0 2px 4px rgba(200, 168, 75, 0.05);
+}
+
+.lcd-flip .flip-static-bot,
+.lcd-flip .flip-anim-bot {
+  background: linear-gradient(to bottom, #0e0c04, #181405);
+  box-shadow: inset 0 -2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* LCD digit glow on all four span layers */
+.lcd-flip .flip-static-top span,
+.lcd-flip .flip-static-bot span,
+.lcd-flip .flip-anim-top span,
+.lcd-flip .flip-anim-bot span {
+  text-shadow:
+    0 0 14px rgba(200, 168, 75, 0.5),
+    0 0 30px rgba(200, 168, 75, 0.22);
+}
+
+/* ── LCD separator — blinking colon ───────────────────── */
+.lcd-flip-sep {
+  font-family: var(--font-digital);
+  font-size: calc(clamp(82px, 15vw, 150px) * 0.6);
+  color: var(--lcd);
+  opacity: 1;
+  padding-bottom: 0;
+  line-height: 1;
+  text-shadow:
+    0 0 14px rgba(200, 168, 75, 0.55),
+    0 0 28px rgba(200, 168, 75, 0.25);
+  -webkit-animation: lcd-blink 1s step-end infinite;
+  animation: lcd-blink 1s step-end infinite;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+@-webkit-keyframes lcd-blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.15; }
+}
+@keyframes lcd-blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.15; }
+}
+
+/* ── LCD Date ──────────────────────────────────────────── */
+#lcd-date {
+  font-family: var(--font-digital);
+  font-size: clamp(14px, 2.4vw, 22px);
+  letter-spacing: 0.14em;
+  color: rgba(200, 168, 75, 0.8);
+  text-shadow: 0 0 10px rgba(200, 168, 75, 0.3);
+  text-transform: uppercase;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* ── LCD Weather details ───────────────────────────────── */
+#weather-details {
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  gap: 3px;
+  grid-gap: 3px;
+  margin-top: 10px;
+  border-top: 1px solid rgba(200, 168, 75, 0.15);
+  padding-top: 8px;
+  width: 100%;
+}
+
+.wd-row {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: baseline;
+  -ms-flex-align: baseline;
+  align-items: baseline;
+  gap: 6px;
+  grid-gap: 6px;
+}
+
+.wd-key {
+  font-family: var(--font-digital);
+  font-size: clamp(9px, 1.3vw, 11px);
+  letter-spacing: 0.12em;
+  color: rgba(200, 168, 75, 0.45);
+  text-transform: uppercase;
+  min-width: 34px;
+}
+
+.wd-val {
+  font-family: var(--font-digital);
+  font-size: clamp(10px, 1.5vw, 13px);
+  letter-spacing: 0.08em;
+  color: rgba(200, 168, 75, 0.85);
+  text-shadow: 0 0 6px rgba(200, 168, 75, 0.25);
+}
+
+/* ── LCD weather card: bigger temperature label ─────────── */
+[data-theme="lcd"] #weather-content {
+  -webkit-box-align: start;
+  -ms-flex-align: start;
+  align-items: flex-start;
+  -ms-flex-wrap: wrap;
+  flex-wrap: wrap;
+}
+
+[data-theme="lcd"] .weather-temp {
+  font-size: clamp(36px, 6vw, 56px);
+  text-shadow:
+    0 0 14px rgba(200, 168, 75, 0.45),
+    0 0 28px rgba(200, 168, 75, 0.2);
+  color: var(--lcd);
+}
+
+[data-theme="lcd"] .weather-label {
+  font-family: var(--font-digital);
+  color: rgba(200, 168, 75, 0.55);
+  letter-spacing: 0.12em;
+}
+
+[data-theme="lcd"] #weather-card {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -ms-flex-direction: column;
+  flex-direction: column;
+}
+
+/* weather card header in LCD theme */
+[data-theme="lcd"] #weather-card::after {
+  content: '▲ WEATHER';
+  display: block;
+  font-family: var(--font-ui);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  color: rgba(200, 168, 75, 0.4);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  -webkit-box-ordinal-group: 0;
+  -ms-flex-order: -1;
+  order: -1;
+}
+
+/* ── LCD calendar header ───────────────────────────────── */
+[data-theme="lcd"] #cal-title::before {
+  content: '▲ ';
+}
+
+[data-theme="lcd"] .card-title {
+  font-family: var(--font-digital);
+  font-size: clamp(9px, 1.3vw, 11px);
+  letter-spacing: 0.14em;
+  color: rgba(200, 168, 75, 0.55);
+}
+
+[data-theme="lcd"] .event-title {
+  font-family: var(--font-digital);
+  font-size: clamp(10px, 1.5vw, 13px);
+  letter-spacing: 0.06em;
+  color: rgba(200, 168, 75, 0.9);
+}
+
+[data-theme="lcd"] .event-time {
+  color: rgba(200, 168, 75, 0.5);
+  letter-spacing: 0.1em;
+}
+
+[data-theme="lcd"] .event-feed-label {
+  color: rgba(200, 168, 75, 0.4);
+}
+
+[data-theme="lcd"] .event-item {
+  border-radius: 2px;
+  background: rgba(200, 168, 75, 0.03);
+  border-left-color: rgba(200, 168, 75, 0.3);
+}
+
+[data-theme="lcd"] .event-item.today {
+  background: rgba(200, 168, 75, 0.06);
+  border-left-color: var(--lcd);
+}
+
+/* ── Theme toggle button ───────────────────────────────── */
+#theme-btn {
+  position: fixed;
+  bottom: calc(20px + env(safe-area-inset-bottom));
+  right: calc(72px + env(safe-area-inset-right));
+  z-index: 10000;
+  width: 44px;
+  height: 44px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--card-border);
+  color: var(--text-dim);
+  cursor: pointer;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  -webkit-tap-highlight-color: transparent;
+  -webkit-transition: color 0.2s, background 0.2s;
+  transition: color 0.2s, background 0.2s;
+}
+
+#theme-btn:active {
+  color: var(--lcd);
+  background: rgba(200, 168, 75, 0.1);
+}
+
+[data-theme="lcd"] #theme-btn {
+  color: var(--lcd);
+  background: rgba(200, 168, 75, 0.08);
+  border-color: rgba(200, 168, 75, 0.3);
+}
+
+/* ── Keyframe Animations ───────────────────────────────── */
+
+/* Weather icon float */
+@-webkit-keyframes weather-float {
+  0%, 100% { -webkit-transform: translateY(0); transform: translateY(0); }
+  50%       { -webkit-transform: translateY(-3px); transform: translateY(-3px); }
+}
+@keyframes weather-float {
+  0%, 100% { -webkit-transform: translateY(0); transform: translateY(0); }
+  50%       { -webkit-transform: translateY(-3px); transform: translateY(-3px); }
+}
+
+.weather-icon svg {
+  -webkit-animation: weather-float 3s ease-in-out infinite;
+  animation: weather-float 3s ease-in-out infinite;
+}
+
+/* Today event dot blink */
+@-webkit-keyframes dot-blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.35; }
+}
+@keyframes dot-blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.35; }
+}
+
+.event-item.today .event-dot {
+  -webkit-animation: dot-blink 1.5s ease-in-out infinite;
+  animation: dot-blink 1.5s ease-in-out infinite;
+}
+
+/* Digital colon blink (subtle) */
+@-webkit-keyframes colon-dim {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.6; }
+}
+@keyframes colon-dim {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.6; }
+}
+
+/* ── Responsiveness fine-tuning ────────────────────────── */
+@media (max-height: 700px) and (orientation: portrait) {
+  #app { grid-gap: 6px; gap: 6px; padding: 6px; }
+  :root { --flip-h: 72px; --flip-w: 52px; --flip-fs: 58px; }
+}
+
+@media (max-height: 500px) and (orientation: landscape) {
+  #app { grid-gap: 8px; gap: 8px; padding: 8px; }
+  .glass-card { padding: 10px 12px; }
+}
+
+/* ==========================================================
+   PHASE 1 — Wake Lock Hint
+   ========================================================== */
+#wake-lock-hint {
+  display: none;
+  position: fixed;
+  bottom: calc(80px + env(safe-area-inset-bottom));
+  left: 50%;
+  -webkit-transform: translateX(-50%);
+  transform: translateX(-50%);
+  z-index: 1005;
+  background: rgba(200, 168, 75, 0.12);
+  border: 1px solid rgba(200, 168, 75, 0.30);
+  border-radius: 20px;
+  padding: 8px 18px;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--lcd);
+  white-space: nowrap;
+  pointer-events: none;
+  -webkit-animation: hint-pulse 2s ease-in-out infinite;
+  animation: hint-pulse 2s ease-in-out infinite;
+}
+
+@-webkit-keyframes hint-pulse {
+  0%, 100% { opacity: 0.65; }
+  50%       { opacity: 1; }
+}
+@keyframes hint-pulse {
+  0%, 100% { opacity: 0.65; }
+  50%       { opacity: 1; }
+}
+
+/* ==========================================================
+   PHASE 2 — Night Dim Overlay
+   ========================================================== */
+#dim-overlay {
+  position: fixed;
+  top: 0; right: 0; bottom: 0; left: 0;
+  background: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 9996;
+  -webkit-transition: opacity 1.2s ease;
+  transition: opacity 1.2s ease;
+}
+
+#dim-overlay.dim-active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* ==========================================================
+   PHASE 3 — Weather Enhancements (sunrise/sunset, updated)
+   ========================================================== */
+#weather-sun {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  gap: 14px;
+  grid-gap: 14px;
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid var(--card-border);
+}
+
+#wd-sunup,
+#wd-sundown {
+  font-family: var(--font-digital);
+  font-size: clamp(9px, 1.3vw, 11px);
+  letter-spacing: 0.1em;
+  color: var(--lcd);
+  opacity: 0.6;
+}
+
+#weather-updated {
+  font-family: var(--font-digital);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+  margin-top: 3px;
+  opacity: 0.55;
+  text-align: right;
+}
+
+/* ==========================================================
+   PHASE 4 — Calendar Countdown
+   ========================================================== */
+#cal-countdown {
+  font-family: var(--font-digital);
+  font-size: clamp(9px, 1.3vw, 11px);
+  letter-spacing: 0.07em;
+  color: var(--lcd);
+  text-transform: uppercase;
+  opacity: 0.75;
+  padding-bottom: 8px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--card-border);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-height: 0;
+}
+
+#cal-countdown:empty {
+  display: none;
+}
+
+[data-theme="lcd"] #cal-countdown {
+  font-size: clamp(9px, 1.3vw, 11px);
+  color: rgba(200, 168, 75, 0.75);
+  border-bottom-color: rgba(200, 168, 75, 0.15);
+}
+
+/* ==========================================================
+   PHASE 5 — Color Theme Button
+   ========================================================== */
+#btn-color {
+  position: fixed;
+  bottom: calc(20px + env(safe-area-inset-bottom));
+  right: calc(124px + env(safe-area-inset-right));
+  z-index: 10000;
+  width: 44px;
+  height: 44px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--card-border);
+  color: var(--text-dim);
+  cursor: pointer;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  -webkit-tap-highlight-color: transparent;
+  -webkit-transition: background 0.2s;
+  transition: background 0.2s;
+}
+
+#btn-color:active {
+  background: rgba(200, 168, 75, 0.12);
+}
+
+/* ==========================================================
+   PHASE 5 — Color Themes (CSS variable overrides per theme)
+   Default amber is defined in :root — no override needed.
+   ========================================================== */
+[data-color="green"] {
+  --lcd:  #39ff14;
+  --lcd2: #00c853;
+  --bg:   #080f08;
+  --bg2:  #0d180d;
+  --text: #c8f5c8;
+  --text-dim: #4a7a4a;
+}
+
+[data-color="blue"] {
+  --lcd:  #00d4ff;
+  --lcd2: #0080ff;
+  --bg:   #070b10;
+  --bg2:  #0b1218;
+  --text: #b8d4e8;
+  --text-dim: #3a5870;
+}
+
+[data-color="red"] {
+  --lcd:  #ff3c28;
+  --lcd2: #ff8800;
+  --bg:   #0f0705;
+  --bg2:  #180c08;
+  --text: #f0c8c0;
+  --text-dim: #7a3028;
+}
+
+[data-color="white"] {
+  --lcd:  #1a1a1a;
+  --lcd2: #444444;
+  --bg:   #f0efe8;
+  --bg2:  #e0dfda;
+  --text: #222222;
+  --text-dim: #888888;
+  --card-bg:     rgba(0, 0, 0, 0.06);
+  --card-border: rgba(0, 0, 0, 0.10);
+}
+
+/* White theme: lighten flip card panels */
+[data-color="white"] .flip-static-top,
+[data-color="white"] .flip-anim-top {
+  background: linear-gradient(to bottom, #e0dfd8, #d0cfc8);
+  border-bottom-color: #b8b7b0;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.06);
+}
+
+[data-color="white"] .flip-static-bot,
+[data-color="white"] .flip-anim-bot {
+  background: linear-gradient(to bottom, #c8c7c0, #d8d7d0);
+  box-shadow: inset 0 -2px 4px rgba(0,0,0,0.08);
+}
+
+[data-color="white"] .flip-card {
+  box-shadow:
+    0 6px 24px rgba(0,0,0,0.12),
+    0 2px 6px  rgba(0,0,0,0.18),
+    inset 0 1px 0 rgba(255,255,255,0.6);
+}
+
+/* Settings hint for wake lock — slightly different border */
+.settings-hint-wake {
+  border-color: rgba(200, 168, 75, 0.2);
+  margin-top: -8px;
+}
+
+/* ==========================================================
+   MINIMALISM THEME — Fullscreen flip clock, Minimalism aesthetic
+   Active when: body[data-theme="minimalism"]
+   ========================================================== */
+
+/* ── Visibility toggles ─────────────────────────────────── */
+[data-theme="minimalism"] #lcd-clock          { display: none !important; }
+[data-theme="minimalism"] #clock-meta         { display: none !important; }
+[data-theme="minimalism"] #weather-section    { display: none !important; }
+[data-theme="minimalism"] #calendar-section   { display: none !important; }
+[data-theme="minimalism"] #minimalism-ampm-row    { display: -webkit-box !important; display: -ms-flexbox !important; display: flex !important; }
+
+/* Hide default flip theme elements that shouldn't appear */
+#minimalism-ampm-row { display: none; }
+
+/* Disable scanline + grain overlays in minimalism theme */
+body[data-theme="minimalism"]::before,
+body[data-theme="minimalism"]::after { display: none !important; }
+
+/* ── Layout — fullscreen, pure black ───────────────────── */
+[data-theme="minimalism"] body {
+  background: #000 !important;
+}
+
+[data-theme="minimalism"] #app {
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+  -ms-grid-columns: 1fr;
+  -ms-grid-rows: 1fr;
+  padding: 0;
+  gap: 0;
+  grid-gap: 0;
+}
+
+[data-theme="minimalism"] #clock-section {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+@media (orientation: landscape) {
+  [data-theme="minimalism"] #app {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+  }
+  [data-theme="minimalism"] #clock-section {
+    grid-column: 1;
+    grid-row: 1;
+  }
+}
+
+/* ── Flip card sizing — all digits same size ───────────── */
+/* Fallback sizing — overridden by data-minimalism-size rules below */
+[data-theme="minimalism"] #clock-widget {
+  --flip-w:  calc((100vw - 40px) / 8.4);
+  --flip-h:  calc(var(--flip-w) * 1.4);
+  --flip-fs: calc(var(--flip-w) * 1.1);
+}
+
+/* ── Digit color: Minimalism grey, no glow ─────────────────── */
+[data-theme="minimalism"] .flip-static-top span,
+[data-theme="minimalism"] .flip-static-bot span,
+[data-theme="minimalism"] .flip-anim-top span,
+[data-theme="minimalism"] .flip-anim-bot span {
+  color: #c8c8c8;
+  text-shadow: none;
+}
+
+/* ── Card panels ────────────────────────────────────────── */
+/* Top half: slightly lighter — reads as the lit face */
+[data-theme="minimalism"] .flip-static-top,
+[data-theme="minimalism"] .flip-anim-top {
+  background: #242424;
+  border-bottom: 1px solid #111;
+  box-shadow: none;
+}
+
+/* Bottom half: slightly darker — matches real split-flap shadow */
+[data-theme="minimalism"] .flip-static-bot,
+[data-theme="minimalism"] .flip-anim-bot {
+  background: #1c1c1c;
+  box-shadow: none;
+}
+
+/* Card outer: clean rectangle, soft lift off pure black */
+[data-theme="minimalism"] .flip-card {
+  border-radius: 5px;
+  background: #1c1c1c;
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.7),
+    0 1px 4px  rgba(0, 0, 0, 0.85);
+}
+
+/* ── Separator: dim, no amber ───────────────────────────── */
+[data-theme="minimalism"] #flip-col1,
+[data-theme="minimalism"] #flip-col2 {
+  color: #555;
+  opacity: 0.8;
+}
+
+/* ── AM/PM row ──────────────────────────────────────────── */
+#minimalism-ampm-row {
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  width: 100%;
+  margin-top: 8px;
+  -webkit-box-pack: start;
+  -ms-flex-pack: start;
+  justify-content: flex-start;
+  padding-left: 4px;
+}
+
+#minimalism-ampm {
+  font-family: var(--font-digital);
+  font-size: clamp(12px, 1.5vw, 18px);
+  color: #777;
+  letter-spacing: 0.12em;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* ── Theme button: hidden — only minimalism theme is used ── */
+#theme-btn { display: none !important; }
+
+/* ── Buttons: visible on minimalism's pure-black background ── */
+[data-theme="minimalism"] #settings-btn,
+[data-theme="minimalism"] #btn-color {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.45);
+}
+
+/* ── Corner weather (bottom-left, visible only in minimalism) ── */
+#corner-weather {
+  display: none;
+  position: fixed;
+  bottom: calc(24px + env(safe-area-inset-bottom));
+  left: calc(24px + env(safe-area-inset-left));
+  z-index: 1000;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  gap: 3px;
+  grid-gap: 3px;
+  pointer-events: none;
+}
+
+[data-theme="minimalism"] #corner-weather {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+}
+
+#corner-weather-icon svg {
+  display: block;
+  width: 48px;
+  height: 48px;
+  opacity: 0.55;
+  -webkit-filter: grayscale(1) brightness(1.6);
+  filter: grayscale(1) brightness(1.6);
+}
+
+#corner-weather-temp {
+  font-family: var(--font-digital);
+  font-size: clamp(38px, 5.5vw, 62px);
+  color: rgba(255, 255, 255, 0.65);
+  letter-spacing: 0.08em;
+  line-height: 1;
+}
+
+#corner-weather-label {
+  font-family: var(--font-ui);
+  font-size: clamp(16px, 2.2vw, 22px);
+  color: rgba(255, 255, 255, 0.40);
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  line-height: 1.3;
+}
+
+/* ── Minimalism: seconds visibility ─────────────────────────── */
+body[data-minimalism-seconds="hide"][data-theme="minimalism"] #flip-ss,
+body[data-minimalism-seconds="hide"][data-theme="minimalism"] #flip-col2 {
+  display: none !important;
+}
+
+/* ── Minimalism: clock size variants ───────────────────────── */
+/* Width formula (with seconds): 6 cards + 2 seps + gaps ≈ 6.7 × flip-w + 40px  */
+/* Width formula (no  seconds):  4 cards + 1 sep  + gaps ≈ 4.35 × flip-w + 22px */
+/* vw-based — no fixed max — always fits screen in any orientation               */
+
+body[data-minimalism-size="small"][data-theme="minimalism"] #clock-widget {
+  --flip-w:  calc((100vw - 40px) / 11.2);   /* ~60% of screen width */
+  --flip-h:  calc(var(--flip-w) * 1.4);
+  --flip-fs: calc(var(--flip-w) * 1.1);
+}
+
+body[data-minimalism-size="medium"][data-theme="minimalism"] #clock-widget {
+  --flip-w:  calc((100vw - 40px) / 8.4);    /* ~80% of screen width */
+  --flip-h:  calc(var(--flip-w) * 1.4);
+  --flip-fs: calc(var(--flip-w) * 1.1);
+}
+
+body[data-minimalism-size="large"][data-theme="minimalism"] #clock-widget {
+  --flip-w:  calc((100vw - 40px) / 6.7);    /* ~100%: fills screen  */
+  --flip-h:  calc(var(--flip-w) * 1.4);
+  --flip-fs: calc(var(--flip-w) * 1.1);
+}
+
+/* ── When seconds hidden: digits grow to fill the same width ── */
+body[data-minimalism-seconds="hide"][data-theme="minimalism"] #clock-widget {
+  --flip-w:  calc((100vw - 22px) / 5.44);   /* fallback medium ~80% */
+  --flip-h:  calc(var(--flip-w) * 1.4);
+  --flip-fs: calc(var(--flip-w) * 1.1);
+}
+
+body[data-minimalism-seconds="hide"][data-minimalism-size="small"][data-theme="minimalism"] #clock-widget {
+  --flip-w:  calc((100vw - 22px) / 7.25);   /* ~60% */
+  --flip-h:  calc(var(--flip-w) * 1.4);
+  --flip-fs: calc(var(--flip-w) * 1.1);
+}
+
+body[data-minimalism-seconds="hide"][data-minimalism-size="medium"][data-theme="minimalism"] #clock-widget {
+  --flip-w:  calc((100vw - 22px) / 5.44);   /* ~80% */
+  --flip-h:  calc(var(--flip-w) * 1.4);
+  --flip-fs: calc(var(--flip-w) * 1.1);
+}
+
+body[data-minimalism-seconds="hide"][data-minimalism-size="large"][data-theme="minimalism"] #clock-widget {
+  --flip-w:  calc((100vw - 22px) / 4.35);   /* ~100%: fills screen */
+  --flip-h:  calc(var(--flip-w) * 1.4);
+  --flip-fs: calc(var(--flip-w) * 1.1);
+}
+
+/* ==========================================================
+   CALENDAR SLIDE-UP PANEL — Minimalism style
+   Triggered by swipe-up gesture; two accordion feeds
+   ========================================================== */
+
+#cal-panel-overlay {
+  display: none;
+  position: fixed;
+  top: 0; right: 0; bottom: 0; left: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 5000;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#cal-panel-overlay.cp-open { display: block; }
+
+/* ── Panel container ── */
+#cal-panel {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 5001;
+  background: transparent;
+  border-top: none;
+  border-radius: 18px 18px 0 0;
+  max-height: 75vh;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  /* peek: handle (4px) + margins (14+6px) + safe area buffer = 44px always visible */
+  -webkit-transform: translateY(calc(100% - 44px));
+  transform: translateY(calc(100% - 44px));
+  -webkit-transition: -webkit-transform 0.35s cubic-bezier(0.32, 0.72, 0, 1), background 0s 0.35s;
+  transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1), background 0s 0.35s;
+}
+
+#cal-panel.cp-open {
+  -webkit-transform: translateY(0);
+  transform: translateY(0);
+  background: #0c0c0c;
+  border-top: 1px solid rgba(255, 255, 255, 0.09);
+  -webkit-transition: -webkit-transform 0.35s cubic-bezier(0.32, 0.72, 0, 1), background 0s 0s;
+  transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1), background 0s 0s;
+}
+
+/* ── Drag handle ── */
+#cal-panel-drag {
+  width: 36px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 2px;
+  margin: 14px auto 6px;
+  -webkit-flex-shrink: 0;
+  -ms-flex-negative: 0;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+/* ── Scrollable inner ── */
+#cal-panel-inner {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 4px 22px calc(24px + env(safe-area-inset-bottom));
+  -webkit-box-flex: 1;
+  -ms-flex: 1;
+  flex: 1;
+}
+
+/* ── Feed section ── */
+.cp-section {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.cp-section:last-child {
+  border-bottom: none;
+}
+
+/* ── Feed header button ── */
+.cp-header {
+  width: 100%;
+  background: none;
+  border: none;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  gap: 12px;
+  grid-gap: 12px;
+  padding: 17px 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  text-align: left;
+}
+
+/* ── Color dot ── */
+.cp-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  -webkit-flex-shrink: 0;
+  -ms-flex-negative: 0;
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+
+/* ── Feed name ── */
+.cp-name {
+  -webkit-box-flex: 1;
+  -ms-flex: 1;
+  flex: 1;
+  font-family: var(--font-digital);
+  font-size: clamp(14px, 2vw, 19px);
+  color: rgba(255, 255, 255, 0.65);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* ── Chevron arrow ── */
+.cp-arrow {
+  color: rgba(255, 255, 255, 0.22);
+  -webkit-flex-shrink: 0;
+  -ms-flex-negative: 0;
+  flex-shrink: 0;
+  -webkit-transition: -webkit-transform 0.22s ease;
+  transition: transform 0.22s ease;
+}
+
+.cp-section.is-open .cp-arrow {
+  -webkit-transform: rotate(90deg);
+  transform: rotate(90deg);
+}
+
+/* ── Event list (collapsed by default) ── */
+.cp-list {
+  display: none;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  padding-bottom: 10px;
+}
+
+.cp-section.is-open .cp-list {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+}
+
+/* ── Single event row ── */
+.cp-ev {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: baseline;
+  -ms-flex-align: baseline;
+  align-items: baseline;
+  gap: 14px;
+  grid-gap: 14px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.cp-ev:last-child { border-bottom: none; }
+
+.cp-ev-time {
+  font-family: var(--font-digital);
+  font-size: clamp(10px, 1.3vw, 12px);
+  color: rgba(255, 255, 255, 0.28);
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+  -webkit-flex-shrink: 0;
+  -ms-flex-negative: 0;
+  flex-shrink: 0;
+  min-width: 70px;
+}
+
+.cp-ev-title {
+  font-family: var(--font-ui);
+  font-size: clamp(13px, 1.8vw, 15px);
+  color: rgba(255, 255, 255, 0.72);
+  line-height: 1.35;
+}
+
+.cp-empty {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.25);
+  padding: 10px 0 16px;
+}
+
