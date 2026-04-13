@@ -10,7 +10,7 @@
   --lcd:  #c8a84b;       /* warm amber/gold */
   --lcd2: #8fb87a;       /* secondary green (weather) */
   --text: #d4d0c8;
-  --text-dim: #666655;
+  --text-dim: #888877;
   --card-bg: rgba(255, 255, 255, 0.03);
   --card-border: rgba(255, 255, 255, 0.07);
   --card-radius: 12px;
@@ -28,6 +28,7 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  -webkit-tap-highlight-color: transparent;
 }
 
 html, body {
@@ -118,8 +119,8 @@ body::after {
   }
 
   #clock-section    { grid-column: 1; grid-row: 1 / 3; }
-  #weather-section  { grid-column: 2; grid-row: 1; align-self: stretch; display: -webkit-box; display: -ms-flexbox; display: flex; -webkit-box-orient: vertical; -webkit-box-direction: normal; -ms-flex-direction: column; flex-direction: column; }
-  #calendar-section { grid-column: 2; grid-row: 2; align-self: stretch; display: -webkit-box; display: -ms-flexbox; display: flex; -webkit-box-orient: vertical; -webkit-box-direction: normal; -ms-flex-direction: column; flex-direction: column; }
+  #weather-section  { grid-column: 2; grid-row: 1; align-self: stretch; display: -webkit-box; display: -ms-flexbox; display: flex; -webkit-box-orient: vertical; -webkit-box-direction: normal; -ms-flex-direction: column; flex-direction: column; min-height: 0; }
+  #calendar-section { grid-column: 2; grid-row: 2; align-self: stretch; display: -webkit-box; display: -ms-flexbox; display: flex; -webkit-box-orient: vertical; -webkit-box-direction: normal; -ms-flex-direction: column; flex-direction: column; min-height: 0; overflow: hidden; }
   #weather-section > .glass-card,
   #calendar-section > .glass-card { -webkit-box-flex: 1; -ms-flex: 1; flex: 1; }
 }
@@ -163,7 +164,7 @@ body::after {
   -ms-flex-align: center;
   align-items: center;
   font-family: var(--font-digital);
-  font-size: clamp(11px, 1.8vw, 15px);
+  font-size: clamp(14px, 2.4vw, 22px);
   color: var(--text-dim);
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -355,6 +356,14 @@ body::after {
   padding: 10px 12px;
   position: relative;
   overflow: hidden;
+  min-height: 0;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -ms-flex-direction: column;
+  flex-direction: column;
 }
 
 .glass-card::before {
@@ -367,7 +376,7 @@ body::after {
 
 .card-title {
   font-family: var(--font-ui);
-  font-size: 10px;
+  font-size: clamp(9px, 1.3vw, 11px);
   font-weight: 600;
   letter-spacing: 0.08em;
   color: var(--text-dim);
@@ -421,6 +430,12 @@ body::after {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  min-height: 0;
+  -webkit-box-flex: 1;
+  -ms-flex: 1;
+  flex: 1;
 }
 
 .event-item {
@@ -431,7 +446,12 @@ body::after {
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.02);
   border-left: 2px solid transparent;
+  -webkit-transition: background 0.2s;
   transition: background 0.2s;
+}
+
+.event-item:active {
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .event-item.today {
@@ -455,7 +475,7 @@ body::after {
 
 .event-time {
   font-family: var(--font-digital);
-  font-size: 10px;
+  font-size: clamp(9px, 1.3vw, 11px);
   color: var(--text-dim);
   letter-spacing: 0.08em;
   white-space: nowrap;
@@ -473,7 +493,7 @@ body::after {
 
 .event-empty {
   font-family: var(--font-ui);
-  font-size: 11px;
+  font-size: clamp(10px, 1.4vw, 12px);
   color: var(--text-dim);
   line-height: 1.6;
   text-align: center;
@@ -481,7 +501,7 @@ body::after {
 }
 
 .event-feed-label {
-  font-size: 8px;
+  font-size: clamp(7px, 1vw, 9px);
   color: var(--text-dim);
   letter-spacing: 0.15em;
   text-transform: uppercase;
@@ -541,15 +561,18 @@ body::after {
   /* iOS 12 fallback */
   width: 90vw;
   max-width: 520px;
-  padding: 24px;
+  max-height: 85vh;
+  padding: 20px 24px;
   background: rgba(10, 10, 26, 0.95);
   -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
   border: 1px solid rgba(200, 168, 75, 0.12);
   border-radius: 16px;
   flex-direction: column;
-  grid-gap: 16px;
-  gap: 16px;
+  grid-gap: 0;
+  gap: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 #settings-panel.is-open {
@@ -578,8 +601,18 @@ body::after {
   font-size: 18px;
   cursor: pointer;
   padding: 4px 8px;
+  min-width: 44px;
+  min-height: 44px;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  justify-content: center;
   border-radius: 6px;
-  -webkit-tap-highlight-color: transparent;
 }
 
 #settings-close:active {
@@ -587,16 +620,77 @@ body::after {
   background: rgba(255,255,255,0.05);
 }
 
+/* ── Collapsible sections ──────────────────────────────── */
+.settings-section {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.settings-section:last-of-type {
+  border-bottom: none;
+}
+
 .settings-section-label {
   font-family: var(--font-ui);
-  font-size: 9px;
+  font-size: clamp(9px, 1.3vw, 10px);
   letter-spacing: 0.25em;
   color: var(--text-dim);
   text-transform: uppercase;
-  padding-top: 8px;
+  padding: 12px 0 8px;
   display: flex;
   align-items: center;
   gap: 8px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.settings-section-label::after {
+  content: '\25B8';
+  margin-left: auto;
+  font-size: 10px;
+  color: var(--text-dim);
+  -webkit-transition: -webkit-transform 0.2s;
+  transition: transform 0.2s;
+  -webkit-transform: rotate(90deg);
+  transform: rotate(90deg);
+  flex-shrink: 0;
+}
+
+.settings-section.is-collapsed .settings-section-label::after {
+  -webkit-transform: rotate(0deg);
+  transform: rotate(0deg);
+}
+
+.settings-section-body {
+  overflow: hidden;
+  max-height: 500px;
+  -webkit-transition: max-height 0.3s ease, opacity 0.2s ease;
+  transition: max-height 0.3s ease, opacity 0.2s ease;
+  opacity: 1;
+  padding: 4px 0 12px;
+}
+
+.settings-section.is-collapsed .settings-section-body {
+  max-height: 0;
+  opacity: 0;
+}
+
+.settings-section-body > * + * {
+  margin-top: 8px;
+}
+
+.settings-subsection-label {
+  font-family: var(--font-ui);
+  font-size: clamp(8px, 1.2vw, 9px);
+  letter-spacing: 0.2em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  padding: 6px 0 2px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  opacity: 0.7;
 }
 
 .settings-label-input {
@@ -606,7 +700,7 @@ body::after {
   outline: none;
   color: var(--text-dim);
   font-family: var(--font-ui);
-  font-size: 9px;
+  font-size: clamp(9px, 1.3vw, 10px);
   letter-spacing: 0.25em;
   text-transform: uppercase;
   padding: 2px 4px;
@@ -623,7 +717,8 @@ body::after {
 .settings-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .settings-input {
@@ -633,7 +728,7 @@ body::after {
   border-radius: 8px;
   color: var(--text);
   font-family: var(--font-digital);
-  font-size: 11px;
+  font-size: clamp(10px, 1.5vw, 12px);
   padding: 10px 12px;
   outline: none;
   -webkit-appearance: none;
@@ -665,7 +760,7 @@ body::after {
   border-radius: 8px;
   color: var(--text);
   font-family: var(--font-ui);
-  font-size: 11px;
+  font-size: clamp(10px, 1.5vw, 12px);
   padding: 10px 10px;
   outline: none;
   -webkit-appearance: none;
@@ -677,19 +772,48 @@ body::after {
 
 .settings-hint {
   font-family: var(--font-ui);
-  font-size: 10px;
+  font-size: clamp(9px, 1.3vw, 11px);
   color: var(--text-dim);
   line-height: 1.7;
   padding: 8px 12px;
   background: rgba(255, 170, 0, 0.05);
   border-radius: 8px;
   border: 1px solid rgba(255, 170, 0, 0.1);
+  margin-top: 0;
+}
+
+/* ── Location status indicator ─────────────────────────── */
+.settings-hint--location {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  gap: 8px;
+  grid-gap: 8px;
+  padding: 6px 12px;
+}
+
+.settings-hint--location.loc-ok {
+  border-color: rgba(143, 184, 122, 0.3);
+  background: rgba(143, 184, 122, 0.06);
+}
+
+.settings-hint--location.loc-manual {
+  border-color: rgba(200, 168, 75, 0.3);
+  background: rgba(200, 168, 75, 0.06);
+}
+
+.settings-hint--location.loc-error {
+  border-color: rgba(255, 60, 40, 0.3);
+  background: rgba(255, 60, 40, 0.06);
 }
 
 .settings-actions {
   display: flex;
   justify-content: flex-end;
-  padding-top: 4px;
+  padding-top: 12px;
 }
 
 /* ── Minimalism option rows ───────────────────────────────── */
@@ -697,7 +821,7 @@ body::after {
   -webkit-box-pack: justify;
   -ms-flex-pack: justify;
   justify-content: space-between;
-  padding: 3px 0;
+  padding: 2px 0;
 }
 
 .settings-opt-label {
@@ -725,14 +849,27 @@ body::after {
   font-weight: 600;
   letter-spacing: 0.04em;
   padding: 7px 14px;
+  min-height: 44px;
+  min-width: 44px;
   cursor: pointer;
   -webkit-appearance: none;
+  -webkit-transition: background 0.15s, color 0.15s;
+  transition: background 0.15s, color 0.15s;
+}
+
+.settings-group-btn:active {
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.65);
 }
 
 .settings-group-btn.is-active {
   background: rgba(200, 168, 75, 0.15);
   border-color: rgba(200, 168, 75, 0.50);
   color: var(--lcd);
+}
+
+.settings-group-btn.is-active:active {
+  background: rgba(200, 168, 75, 0.25);
 }
 
 .btn-save {
@@ -958,7 +1095,7 @@ body::after {
 /* ── LCD Date ──────────────────────────────────────────── */
 #lcd-date {
   font-family: var(--font-digital);
-  font-size: clamp(14px, 2.4vw, 22px);
+  font-size: clamp(16px, 3vw, 28px);
   letter-spacing: 0.14em;
   color: rgba(200, 168, 75, 0.8);
   text-shadow: 0 0 10px rgba(200, 168, 75, 0.3);
@@ -1182,11 +1319,43 @@ body::after {
 @media (max-height: 700px) and (orientation: portrait) {
   #app { grid-gap: 6px; gap: 6px; padding: 6px; }
   :root { --flip-h: 72px; --flip-w: 52px; --flip-fs: 58px; }
+  .glass-card { padding: 8px 10px; }
+  .weather-temp { font-size: clamp(18px, 3.5vw, 30px); }
+  #calendar-header { margin-bottom: 6px; }
 }
 
 @media (max-height: 500px) and (orientation: landscape) {
   #app { grid-gap: 8px; gap: 8px; padding: 8px; }
   .glass-card { padding: 10px 12px; }
+}
+
+/* Small screens (iPhone / small viewport) */
+@media (max-width: 600px) {
+  #app {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr auto auto;
+    grid-gap: 6px;
+    gap: 6px;
+    padding: 6px;
+  }
+  :root {
+    --flip-h: clamp(60px, 14vw, 90px);
+    --flip-w: clamp(44px, 10vw, 66px);
+    --flip-fs: clamp(48px, 11vw, 72px);
+  }
+  .glass-card { padding: 8px 10px; }
+  .weather-temp { font-size: clamp(18px, 5vw, 28px); }
+  #settings-panel { padding: 16px; }
+}
+
+/* Large screens (iPad Pro 12.9" landscape) */
+@media (min-width: 1200px) and (orientation: landscape) {
+  #app {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    max-width: 1600px;
+    margin: 0 auto;
+  }
+  .glass-card { padding: 14px 18px; }
 }
 
 /* ==========================================================
@@ -1348,7 +1517,7 @@ body::after {
   --bg:   #080f08;
   --bg2:  #0d180d;
   --text: #c8f5c8;
-  --text-dim: #4a7a4a;
+  --text-dim: #6a9a6a;
 }
 
 [data-color="blue"] {
@@ -1357,7 +1526,7 @@ body::after {
   --bg:   #070b10;
   --bg2:  #0b1218;
   --text: #b8d4e8;
-  --text-dim: #3a5870;
+  --text-dim: #557890;
 }
 
 [data-color="red"] {
@@ -1366,7 +1535,7 @@ body::after {
   --bg:   #0f0705;
   --bg2:  #180c08;
   --text: #f0c8c0;
-  --text-dim: #7a3028;
+  --text-dim: #9a4840;
 }
 
 [data-color="white"] {
@@ -1404,7 +1573,7 @@ body::after {
 /* Settings hint for wake lock — slightly different border */
 .settings-hint-wake {
   border-color: rgba(200, 168, 75, 0.2);
-  margin-top: -8px;
+  margin-top: 10px;
 }
 
 /* ==========================================================
@@ -1773,9 +1942,15 @@ body[data-minimalism-seconds="hide"][data-minimalism-size="large"][data-theme="m
   gap: 12px;
   grid-gap: 12px;
   padding: 17px 0;
+  min-height: 44px;
   cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
   text-align: left;
+  -webkit-transition: opacity 0.15s;
+  transition: opacity 0.15s;
+}
+
+.cp-header:active {
+  opacity: 0.65;
 }
 
 /* ── Color dot ── */
@@ -1903,8 +2078,8 @@ body[data-minimalism-seconds="hide"][data-minimalism-size="large"][data-theme="m
   -webkit-box-direction: normal;
   -ms-flex-direction: column;
   flex-direction: column;
-  gap: 8px;
-  grid-gap: 8px;
+  gap: 10px;
+  grid-gap: 10px;
   -webkit-transform: scale(0.7) translateY(12px);
   transform: scale(0.7) translateY(12px);
   opacity: 0;
@@ -1923,18 +2098,19 @@ body[data-minimalism-seconds="hide"][data-minimalism-size="large"][data-theme="m
 }
 
 .color-swatch {
-  width: 28px;
-  height: 28px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   border: 2px solid rgba(255, 255, 255, 0.15);
   cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
   -webkit-transition: -webkit-transform 0.12s ease, border-color 0.12s ease;
   transition: transform 0.12s ease, border-color 0.12s ease;
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
   padding: 0;
   background-clip: content-box;
+  /* Ensure 44px minimum touch target */
+  position: relative;
 }
 
 .color-swatch[data-color="amber"]  { background-color: #c8a84b; }
@@ -2025,5 +2201,61 @@ body[data-minimalism-seconds="hide"][data-minimalism-size="large"][data-theme="m
   height: 1px;
   background: rgba(255, 255, 255, 0.08);
   margin: 4px 0 12px;
+}
+
+/* ==========================================================
+   ACCESSIBILITY — Focus-visible outlines
+   ========================================================== */
+button:focus-visible,
+input:focus-visible,
+.cp-name:focus-visible,
+.settings-input:focus-visible,
+.settings-name:focus-visible,
+.settings-label-input:focus-visible {
+  outline: 2px solid var(--lcd);
+  outline-offset: 2px;
+}
+
+.color-swatch:focus-visible {
+  outline: 2px solid var(--lcd);
+  outline-offset: 3px;
+}
+
+/* ==========================================================
+   REDUCED MOTION — Disable animations for motion-sensitive users
+   ========================================================== */
+@media (prefers-reduced-motion: reduce) {
+  .flip-card.flipping .flip-anim-top,
+  .flip-card.flipping .flip-anim-bot {
+    -webkit-animation: none !important;
+    animation: none !important;
+  }
+
+  .flip-anim-top {
+    -webkit-transform: rotateX(-90deg) !important;
+    transform: rotateX(-90deg) !important;
+  }
+
+  .flip-anim-bot {
+    -webkit-transform: rotateX(0deg) !important;
+    transform: rotateX(0deg) !important;
+  }
+
+  .weather-icon svg {
+    -webkit-animation: none !important;
+    animation: none !important;
+  }
+
+  .event-item.today .event-dot {
+    -webkit-animation: none !important;
+    animation: none !important;
+  }
+
+  #cal-panel,
+  #color-picker,
+  #dim-overlay {
+    -webkit-transition: none !important;
+    transition: none !important;
+  }
 }
 

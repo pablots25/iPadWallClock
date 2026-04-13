@@ -4,14 +4,14 @@
    Must be served from the root path (same scope as app)
    ========================================================== */
 
-var CACHE_NAME = 'ipadclock-v9';
+var CACHE_NAME = 'ipadclock-v13';
 
 // Shell files to pre-cache on install
 var SHELL_URLS = [
   '/',
   '/index.html',
-  '/styles.css',
-  '/app.js',
+  '/styles.css?v=13',
+  '/app.js?v=13',
   '/manifest.json',
   // Google Fonts CSS is fetched dynamically; we cache on first use instead
 ];
@@ -63,8 +63,8 @@ self.addEventListener('fetch', function(event) {
     return;
   }
 
-  // Cache-first: shell files, fonts, static assets
-  event.respondWith(cacheFirst(event.request));
+  // Network-first: always fetch fresh assets, fall back to cache offline
+  event.respondWith(networkFirst(event.request));
 });
 
 // Strategy: try network, fall back to cache
@@ -78,26 +78,9 @@ function networkFirst(request) {
     }
     return response;
   }).catch(function() {
-    return caches.match(request);
-  });
-}
-
-// Strategy: try cache, fall back to network; cache successful responses
-function cacheFirst(request) {
-  return caches.match(request).then(function(cached) {
-    if (cached) {
-      return cached;
-    }
-    return fetch(request).then(function(response) {
-      if (response && response.ok) {
-        var clone = response.clone();
-        caches.open(CACHE_NAME).then(function(cache) {
-          cache.put(request, clone);
-        });
-      }
-      return response;
-    }).catch(function() {
-      // Return a minimal offline response for HTML requests
+    return caches.match(request).then(function(cached) {
+      if (cached) return cached;
+      // Minimal offline page for HTML requests
       if (request.headers.get('Accept') &&
           request.headers.get('Accept').indexOf('text/html') !== -1) {
         return new Response(
@@ -108,3 +91,5 @@ function cacheFirst(request) {
     });
   });
 }
+
+// Removed cacheFirst — all requests now use networkFirst for cache busting

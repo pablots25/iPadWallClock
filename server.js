@@ -221,7 +221,7 @@ function handleRequest(req, res) {
   if (ext === '.html') {
     headers['Cache-Control'] = 'no-store';
   } else if (ext === '.js' || ext === '.css') {
-    headers['Cache-Control'] = 'public, max-age=3600';
+    headers['Cache-Control'] = 'no-cache';
   } else {
     headers['Cache-Control'] = 'public, max-age=86400';
   }

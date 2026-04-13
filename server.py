@@ -79,7 +79,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
         ext = os.path.splitext(file_path)[1].lower()
         mime = MIME_EXTRA.get(ext) or mimetypes.guess_type(file_path)[0] or 'application/octet-stream'
 
-        cache = 'no-store' if ext == '.html' else ('public, max-age=3600' if ext in ('.js', '.css') else 'public, max-age=86400')
+        cache = 'no-store' if ext == '.html' else ('no-cache' if ext in ('.js', '.css') else 'public, max-age=86400')
 
         with open(file_path, 'rb') as f:
             data = f.read()

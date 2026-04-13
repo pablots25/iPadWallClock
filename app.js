@@ -179,6 +179,10 @@
   var elFeed2Name   = document.getElementById('feed2-name');
   var elSettingsName0 = document.getElementById('settings-name-0');
   var elSettingsName1 = document.getElementById('settings-name-1');
+  var elSettingsLat   = document.getElementById('settings-lat');
+  var elSettingsLon   = document.getElementById('settings-lon');
+  var elLocationStatus     = document.getElementById('location-status');
+  var elLocationStatusText = document.getElementById('location-status-text');
 
   /* ── Flip card helper ──────────────────────────────── */
   // Each .flip-card holds:
@@ -356,23 +360,66 @@
       });
   }
 
-  function onGeoSuccess(pos) {
-    lastLat = pos.coords.latitude;
-    lastLon = pos.coords.longitude;
-    fetchWeather(lastLat, lastLon);
+  /* ── Manual Location helpers ───────────────────────── */
+  function loadManualLocation() {
+    try {
+      var raw = localStorage.getItem('manual-location');
+      if (!raw) return null;
+      var obj = JSON.parse(raw);
+      var lat = parseFloat(obj.lat);
+      var lon = parseFloat(obj.lon);
+      if (isNaN(lat) || isNaN(lon)) return null;
+      if (lat < -90 || lat > 90 || lon < -180 || lon > 180) return null;
+      return { lat: lat, lon: lon };
+    } catch (e) { return null; }
+  }
 
+  function saveManualLocation(lat, lon) {
+    try {
+      localStorage.setItem('manual-location', JSON.stringify({ lat: lat, lon: lon }));
+    } catch (e) { console.warn('[Location] save error:', e); }
+  }
+
+  function updateLocationStatus(type) {
+    if (!elLocationStatus || !elLocationStatusText) return;
+    if (type === 'gps') {
+      elLocationStatus.className = 'settings-hint settings-hint--location loc-ok';
+      elLocationStatusText.textContent = '✓ GPS activo (' + lastLat.toFixed(2) + ', ' + lastLon.toFixed(2) + ')';
+    } else if (type === 'manual') {
+      elLocationStatus.className = 'settings-hint settings-hint--location loc-manual';
+      elLocationStatusText.textContent = '◉ Ubicación manual (' + lastLat.toFixed(2) + ', ' + lastLon.toFixed(2) + ')';
+    } else {
+      elLocationStatus.className = 'settings-hint settings-hint--location loc-error';
+      elLocationStatusText.textContent = '✗ Sin ubicación — configura en ⚙';
+    }
+  }
+
+  function startWeatherWithCoords(lat, lon) {
+    lastLat = lat;
+    lastLon = lon;
+    fetchWeather(lastLat, lastLon);
     if (weatherTimer) { clearInterval(weatherTimer); }
     weatherTimer = setInterval(function() {
-      if (lastLat !== null) {
-        fetchWeather(lastLat, lastLon);
-      }
+      if (lastLat !== null) { fetchWeather(lastLat, lastLon); }
     }, 30 * 60 * 1000);
   }
 
+  function onGeoSuccess(pos) {
+    startWeatherWithCoords(pos.coords.latitude, pos.coords.longitude);
+    updateLocationStatus('gps');
+  }
+
   function onGeoError() {
-    if (elWeatherLbl)  { elWeatherLbl.innerHTML  = '<span class="weather-error">Ubicación denegada</span>'; }
-    if (elWeatherTemp) { elWeatherTemp.textContent = '--°C'; }
-    if (elWeatherIcon) { elWeatherIcon.innerHTML   = getWeatherSVG('cloud'); }
+    var manual = loadManualLocation();
+    if (manual) {
+      startWeatherWithCoords(manual.lat, manual.lon);
+      updateLocationStatus('manual');
+    } else {
+      if (elWeatherLbl)  { elWeatherLbl.innerHTML  = '<span class="weather-error">Configura ubicación en ⚙</span>'; }
+      if (elWeatherTemp) { elWeatherTemp.textContent = '--°C'; }
+      if (elWeatherIcon) { elWeatherIcon.innerHTML   = getWeatherSVG('cloud'); }
+      updateLocationStatus('error');
+    }
   }
 
   /* ── Night Dimming ─────────────────────────────────────── */
@@ -440,7 +487,7 @@
 
   function initWeather() {
     if (!navigator.geolocation) {
-      onGeoError();
+      onGeoError(); /* will try manual fallback */
       return;
     }
     navigator.geolocation.getCurrentPosition(onGeoSuccess, onGeoError, {
@@ -949,6 +996,19 @@
       elSettingsSave.textContent = '\u2713 GUARDADO';
       elSettingsSave.disabled = true;
     }
+    /* ── Save manual location ── */
+    var latVal = elSettingsLat ? elSettingsLat.value.trim() : '';
+    var lonVal = elSettingsLon ? elSettingsLon.value.trim() : '';
+    if (latVal !== '' && lonVal !== '') {
+      var lat = parseFloat(latVal);
+      var lon = parseFloat(lonVal);
+      if (!isNaN(lat) && !isNaN(lon) && lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180) {
+        saveManualLocation(lat, lon);
+        startWeatherWithCoords(lat, lon);
+        updateLocationStatus('manual');
+      }
+    }
+
     setTimeout(function() {
       if (elSettingsSave) {
         elSettingsSave.textContent = 'GUARDAR';
@@ -971,6 +1031,13 @@
     elFeed2Name.value  = f2.name  || 'Pareja';
     if (elSettingsName0) { elSettingsName0.value = f1.name || 'Yo'; }
     if (elSettingsName1) { elSettingsName1.value = f2.name || 'Pareja'; }
+
+    /* ── Populate manual location ── */
+    var manual = loadManualLocation();
+    if (manual && elSettingsLat && elSettingsLon) {
+      elSettingsLat.value = manual.lat;
+      elSettingsLon.value = manual.lon;
+    }
   }
 
   function openSettings() {
@@ -993,6 +1060,41 @@
   elSettingsClose.addEventListener('click', closeSettings);
   elSettingsOvl.addEventListener('click', closeSettings);
   elSettingsSave.addEventListener('click', saveSettings);
+
+  /* ── Collapsible settings sections ─────────────────────── */
+  (function initCollapsibleSections() {
+    var sections = elSettingsPanel.querySelectorAll('.settings-section');
+    var stored = null;
+    try { stored = JSON.parse(localStorage.getItem('settings-collapsed') || '{}'); } catch(e) { stored = {}; }
+
+    for (var i = 0; i < sections.length; i++) {
+      var label = sections[i].querySelector('.settings-section-label');
+      if (!label) continue;
+      var key = label.textContent.trim().replace(/\s+/g, '-').toLowerCase();
+      sections[i].setAttribute('data-section-key', key);
+
+      if (stored[key]) {
+        sections[i].className = sections[i].className + ' is-collapsed';
+      }
+
+      (function(section, sKey) {
+        section.querySelector('.settings-section-label').addEventListener('click', function(e) {
+          if (e.target.tagName === 'INPUT') return; /* don't collapse when editing inline input */
+          var isCollapsed = section.className.indexOf('is-collapsed') !== -1;
+          if (isCollapsed) {
+            section.className = section.className.replace(' is-collapsed', '').replace('is-collapsed', '');
+          } else {
+            section.className = section.className + ' is-collapsed';
+          }
+          /* persist state */
+          var state = {};
+          try { state = JSON.parse(localStorage.getItem('settings-collapsed') || '{}'); } catch(e2) { state = {}; }
+          state[sKey] = !isCollapsed;
+          try { localStorage.setItem('settings-collapsed', JSON.stringify(state)); } catch(e2) {}
+        });
+      })(sections[i], key);
+    }
+  })();
 
   /* ── Name change handlers (calendar panel + settings) ──── */
   function saveNameChanges() {

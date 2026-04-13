@@ -32,7 +32,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=13">
 </head>
 <body data-theme="minimalism">
 
@@ -41,7 +41,7 @@
   <div id="app">
 
     <!-- ═══════════════ TOP: Flip Clock ═══════════════ -->
-    <section id="clock-section">
+    <section id="clock-section" aria-label="Reloj">
 
 
 
@@ -120,12 +120,13 @@
     </section>
 
     <!-- ═══════════════ RIGHT / BOTTOM-LEFT: Weather ═══════════════ -->
-    <section id="weather-section">
+    <section id="weather-section" aria-label="Meteorología">
       <div id="weather-card" class="glass-card">
         <div id="weather-content">
-          <span id="weather-icon" class="weather-icon">
+          <span id="weather-icon" class="weather-icon" aria-label="Icono del tiempo">
             <!-- Spinner while loading -->
-            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" role="img" aria-label="Cargando tiempo">
+              <title>Cargando...</title>
               <circle cx="16" cy="16" r="12" stroke="#444" stroke-width="2"/>
               <path d="M16 4a12 12 0 0 1 12 12" stroke="#c8a84b" stroke-width="2" stroke-linecap="round"/>
             </svg>
@@ -151,7 +152,7 @@
     </section>
 
     <!-- ═══════════════ RIGHT / BOTTOM-RIGHT: Calendar ═══════════════ -->
-    <section id="calendar-section">
+    <section id="calendar-section" aria-label="Calendario">
       <div id="calendar-card" class="glass-card">
         <div id="calendar-header">
           <span class="card-title" id="cal-title">PRÓXIMOS EVENTOS</span>
@@ -183,7 +184,7 @@
     </svg>
   </button>
 
-  <button id="settings-btn" aria-label="Ajustes">
+  <button id="settings-btn" aria-label="Ajustes" title="Ajustes">
     <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <circle cx="12" cy="12" r="3"/>
       <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
@@ -241,42 +242,63 @@
       <button id="settings-close" aria-label="Cerrar ajustes">✕</button>
     </div>
 
-    <div class="settings-section-label">PANTALLA</div>
-    <div class="settings-row settings-row--opt">
-      <span class="settings-opt-label">Segundos</span>
-      <div class="settings-btn-group" id="minimalism-seconds-group">
-        <button class="settings-group-btn" data-seconds="show">S&#237;</button>
-        <button class="settings-group-btn" data-seconds="hide">No</button>
+    <div class="settings-section">
+      <div class="settings-section-label">PANTALLA</div>
+      <div class="settings-section-body">
+        <div class="settings-row settings-row--opt">
+          <span class="settings-opt-label">Segundos</span>
+          <div class="settings-btn-group" id="minimalism-seconds-group">
+            <button class="settings-group-btn" data-seconds="show" aria-label="Mostrar segundos">S&#237;</button>
+            <button class="settings-group-btn" data-seconds="hide" aria-label="Ocultar segundos">No</button>
+          </div>
+        </div>
+        <div class="settings-row settings-row--opt">
+          <span class="settings-opt-label">Tama&#241;o</span>
+          <div class="settings-btn-group" id="minimalism-size-group">
+            <button class="settings-group-btn" data-size="small" aria-label="Tamaño pequeño">P</button>
+            <button class="settings-group-btn" data-size="medium" aria-label="Tamaño mediano">M</button>
+            <button class="settings-group-btn" data-size="large" aria-label="Tamaño grande">G</button>
+          </div>
+        </div>
       </div>
     </div>
-    <div class="settings-row settings-row--opt">
-      <span class="settings-opt-label">Tama&#241;o</span>
-      <div class="settings-btn-group" id="minimalism-size-group">
-        <button class="settings-group-btn" data-size="small">P</button>
-        <button class="settings-group-btn" data-size="medium">M</button>
-        <button class="settings-group-btn" data-size="large">G</button>
+
+    <div class="settings-section">
+      <div class="settings-section-label">UBICACIÓN</div>
+      <div class="settings-section-body">
+        <div id="location-status" class="settings-hint settings-hint--location">
+          <span id="location-status-text">Detectando ubicación…</span>
+        </div>
+        <div class="settings-row">
+          <input type="text" id="settings-lat" class="settings-input" placeholder="Latitud (ej: 40.4168)" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" inputmode="decimal">
+          <input type="text" id="settings-lon" class="settings-input" placeholder="Longitud (ej: -3.7038)" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" inputmode="decimal">
+        </div>
+        <div class="settings-hint">Si el dispositivo no tiene GPS, introduce las coordenadas manualmente.<br>Búscalas en Google Maps: mantén pulsado un punto del mapa.</div>
       </div>
     </div>
 
-    <div class="settings-divider"></div>
+    <div class="settings-section">
+      <div class="settings-section-label">CALENDARIOS</div>
+      <div class="settings-section-body">
+        <div class="settings-subsection-label">CALENDARIO 1 — <input type="text" id="settings-name-0" class="settings-label-input" maxlength="30" value="Yo"></div>
+        <div class="settings-row">
+          <input type="text" id="feed1-url" class="settings-input" placeholder="URL iCal de Google Calendar…" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
+          <input type="color" id="feed1-color" class="settings-color" value="#00f0ff">
+          <input type="text" id="feed1-name" class="settings-name" placeholder="Mi nombre" autocorrect="off">
+        </div>
 
-    <div class="settings-section-label">CALENDARIO 1 — <input type="text" id="settings-name-0" class="settings-label-input" maxlength="30" value="Yo"></div>
-    <div class="settings-row">
-      <input type="text" id="feed1-url" class="settings-input" placeholder="URL iCal de Google Calendar…" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
-      <input type="color" id="feed1-color" class="settings-color" value="#00f0ff">
-      <input type="text" id="feed1-name" class="settings-name" placeholder="Mi nombre" autocorrect="off">
-    </div>
+        <div class="settings-subsection-label">CALENDARIO 2 — <input type="text" id="settings-name-1" class="settings-label-input" maxlength="30" value="Pareja"></div>
+        <div class="settings-row">
+          <input type="text" id="feed2-url" class="settings-input" placeholder="URL iCal de Google Calendar…" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
+          <input type="color" id="feed2-color" class="settings-color" value="#00ff88">
+          <input type="text" id="feed2-name" class="settings-name" placeholder="Nombre pareja" autocorrect="off">
+        </div>
 
-    <div class="settings-section-label">CALENDARIO 2 — <input type="text" id="settings-name-1" class="settings-label-input" maxlength="30" value="Pareja"></div>
-    <div class="settings-row">
-      <input type="text" id="feed2-url" class="settings-input" placeholder="URL iCal de Google Calendar…" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
-      <input type="color" id="feed2-color" class="settings-color" value="#00ff88">
-      <input type="text" id="feed2-name" class="settings-name" placeholder="Nombre pareja" autocorrect="off">
-    </div>
-
-    <div class="settings-hint">
-      En Google Calendar: ⚙ → Ajustes del calendario → "Dirección secreta en formato iCal"<br>
-      Solo funcionan URLs de Google Calendar (restricción CORS del navegador).
+        <div class="settings-hint">
+          En Google Calendar: ⚙ → Ajustes del calendario → "Dirección secreta en formato iCal"<br>
+          Solo funcionan URLs de Google Calendar (restricción CORS del navegador).
+        </div>
+      </div>
     </div>
 
     <div class="settings-hint settings-hint-wake">
@@ -310,6 +332,6 @@
     }
   </script>
 
-  <script src="app.js" defer></script>
+  <script src="app.js?v=13" defer></script>
 </body>
 </html>
