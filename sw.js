@@ -4,13 +4,15 @@
    Must be served from the root path (same scope as app)
    ========================================================== */
 
-var CACHE_NAME = 'ipadclock-v8';
+var CACHE_NAME = 'ipadclock-v9';
 
 // Shell files to pre-cache on install
 var SHELL_URLS = [
+  '/',
   '/index.html',
   '/styles.css',
   '/app.js',
+  '/manifest.json',
   // Google Fonts CSS is fetched dynamically; we cache on first use instead
 ];
 
