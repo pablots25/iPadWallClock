@@ -1,14 +1,15 @@
 # iPad Casio Clock
 
-A retro Casio-inspired digital clock web app for iPad, designed to be installed as a PWA (Progressive Web App) directly from Safari. Displays a flip-card clock with live weather and Google Calendar integration.
+A retro Casio-inspired digital clock web app for iPad, designed to be installed as a PWA (Progressive Web App) directly from Safari. Displays a flip-card clock with live weather, Google Calendar integration, and a slide-up calendar panel.
 
 ## Features
 
-- **Flip-card clock** — animated HH:MM:SS display with 3D card-flip transitions every second
-- **Dual themes** — Flip Clock (default) and LCD retro (7-segment amber glow)
-- **5 color themes** — Amber (default), Green phosphor, Blue/cyan, Red, White/daylight; cycle with the color button
-- **Live weather** — current conditions, sunrise/sunset times, UV index, and last-updated timestamp via Open-Meteo (free, no API key)
-- **Google Calendar** — up to 2 ICS feeds, recurring events (RRULE), top-5 upcoming events with countdown to next event
+- **Flip-card clock** — animated HH:MM:SS display with 3D card-flip transitions every second, minimalism theme
+- **Display options** — toggle seconds on/off, choose between 3 sizes (small/medium/large) from the settings panel
+- **5 color themes** — Amber (default), Green phosphor, Blue/cyan, Red, White/daylight; pick from the color palette button
+- **Live weather** — current conditions, sunrise/sunset times, UV index, rain, humidity, wind, and last-updated timestamp via Open-Meteo (free, no API key); corner weather widget always visible
+- **Google Calendar** — up to 2 ICS feeds, recurring events (RRULE), top-5 upcoming events with countdown; refreshes every 60 seconds
+- **Calendar panel** — slide-up panel triggered by swipe-up gesture or drag handle tap; accordion sections per feed, today badge showing number of events today
 - **Night auto-dim** — screen fades to 50 % brightness after sunset and restores at sunrise; tap to dismiss for 5 minutes
 - **Anti-sleep** — silent AudioContext trick keeps the screen on after first touch (iOS 12 compatible)
 - **Page Visibility optimisation** — RAF loop and polling pause when the app is backgrounded; resume and refresh immediately on return
@@ -70,34 +71,43 @@ Default port is `8443`. To use a different port:
 
 ## Configuration
 
-All settings are accessed via the gear icon in the app:
+All settings are accessed via the gear icon (⚙) in the bottom-right corner:
 
 | Setting | Description |
 |---------|-------------|
-| **Theme** | Toggle between Flip Clock and LCD retro (bottom-right button) |
-| **Color** | Cycle through 5 color themes: Amber → Green → Blue → Red → White (middle button) |
+| **Seconds** | Show or hide the seconds digits |
+| **Size** | Clock size: P (small), M (medium), G (large) |
+| **Color** | Pick from 5 color themes via the color palette button (bottom-right) |
 | **Calendar 1–2** | ICS feed URL, display name, and color for each Google Calendar |
-| **Wake Lock** | Tap anywhere on screen once to activate; a hint banner appears on first launch |
 
-Settings are persisted in `localStorage`. Weather is fetched automatically using the device's Geolocation API.
+Settings are persisted in `localStorage`. Weather is fetched automatically using the device's Geolocation API (refreshed every 30 minutes).
 
 To get a Google Calendar ICS URL: Google Calendar → Settings → your calendar → **Secret address in iCal format**.
+
+### Calendar Panel
+
+Swipe up from the bottom half of the screen or tap the drag handle to open the calendar panel. Each feed is shown as a collapsible accordion section. A badge next to the handle shows how many events you have today. Swipe down or tap the overlay to close.
 
 ### Night Dimming
 
 The app automatically dims to 50 % brightness from sunset to sunrise, using sunrise/sunset data from the same Open-Meteo weather call. Tap the dim overlay to dismiss it for 5 minutes.
 
+### Screen Always On
+
+To keep the iPad screen from locking, go to **Settings → Display & Brightness → Auto-Lock → Never**. The app also uses a silent AudioContext trick to prevent the screen from sleeping after the first touch.
+
 ## Project Structure
 
 | File | Description |
 |------|-------------|
-| `index.html` | App shell, PWA meta tags, flip-card markup, new UI elements (dim overlay, color button, wake hint) |
-| `app.js` | Clock logic, flip animations, weather (incl. sunrise/UV), calendar parser, countdown, anti-sleep, color themes, page visibility |
-| `styles.css` | Dual display themes × 5 color themes, flip animations, dim overlay, wake hint, responsive grid, safe-area insets |
+| `index.html` | App shell, PWA meta tags, flip-card markup, calendar panel, settings panel, dim overlay, corner weather |
+| `app.js` | Clock logic, flip animations, weather (incl. sunrise/UV), calendar parser, countdown, slide-up panel, swipe gestures, anti-sleep, color themes, page visibility |
+| `styles.css` | Minimalism theme × 5 color themes, flip animations, calendar panel, dim overlay, responsive grid, safe-area insets |
 | `sw.js` | Service Worker — cache-first for shell, network-first for APIs |
 | `server.js` | HTTPS static server + CORS proxy (Node.js, no npm deps) |
 | `server.py` | HTTP static server + CORS proxy (Python 3, stdlib only) |
 | `start.sh` | Launch HTTP dev server and open browser |
+| `start-https.sh` | Generate mkcert certificates and launch HTTPS server for iPad access over LAN |
 | `start-https.sh` | Launch HTTPS server with automatic mkcert cert management |
 
 ## Architecture Overview
