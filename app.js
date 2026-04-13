@@ -1177,7 +1177,7 @@
 
   document.addEventListener('click', function(e) {
     if (!elColorPicker || !elColorPicker.classList.contains('cp-open')) return;
-    if (!elColorPicker.contains(e.target) && e.target !== elColorBtn) {
+    if (!elColorPicker.contains(e.target) && !(elColorBtn && elColorBtn.contains(e.target))) {
       elColorPicker.classList.remove('cp-open');
     }
   });
