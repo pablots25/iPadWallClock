@@ -186,12 +186,21 @@ body::after {
   grid-gap: 6px;
 }
 
+/* margin fallback for iOS 12 which doesn't support flexbox gap */
+#flip-clock > * + * {
+  margin-left: 6px;
+}
+
 .flip-group {
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
   gap: 4px;
   grid-gap: 4px;
+}
+
+.flip-group > * + * {
+  margin-left: 4px;
 }
 
 .flip-sep {
@@ -1586,7 +1595,7 @@ body::after {
 [data-theme="minimalism"] #clock-meta         { display: none !important; }
 [data-theme="minimalism"] #weather-section    { display: none !important; }
 [data-theme="minimalism"] #calendar-section   { display: none !important; }
-[data-theme="minimalism"] #minimalism-ampm-row    { display: -webkit-box !important; display: -ms-flexbox !important; display: flex !important; }
+[data-theme="minimalism"] #minimalism-ampm-row    { display: -webkit-box !important; display: -ms-flexbox !important; display: flex !important; -webkit-box-orient: horizontal !important; -webkit-box-direction: normal !important; -ms-flex-direction: row !important; flex-direction: row !important; }
 
 /* Hide default flip theme elements that shouldn't appear */
 #minimalism-ampm-row { display: none; }
@@ -1606,6 +1615,10 @@ body[data-theme="minimalism"]::after { display: none !important; }
   -ms-grid-columns: 1fr;
   -ms-grid-rows: 1fr;
   padding: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 0;
+  padding-right: 0;
   gap: 0;
   grid-gap: 0;
 }
@@ -1613,25 +1626,96 @@ body[data-theme="minimalism"]::after { display: none !important; }
 [data-theme="minimalism"] #clock-section {
   grid-column: 1;
   grid-row: 1;
+  position: relative;
+  width: 100%;
+  height: 100%;
 }
 
 @media (orientation: landscape) {
   [data-theme="minimalism"] #app {
     grid-template-columns: 1fr;
     grid-template-rows: 1fr;
+    padding: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    padding-left: 0;
+    padding-right: 0;
+    gap: 0;
+    grid-gap: 0;
   }
   [data-theme="minimalism"] #clock-section {
     grid-column: 1;
     grid-row: 1;
+    position: relative;
+    width: 100%;
+    height: 100%;
   }
 }
 
 /* ── Flip card sizing — all digits same size ───────────── */
 /* Fallback sizing — overridden by data-minimalism-size rules below */
+/* Total width ≈ 6W + 3×0.03W(inner) + 2×0.16W(sep margins) = 6.41W
+   For 80%: W = 0.80×96vw / 6.41 → 96vw / 8.01
+   Total height ≈ 1.4W(card) + 0.36W(date) + 0.12W(ampm) + margin ≈ 1.9W */
 [data-theme="minimalism"] #clock-widget {
-  --flip-w:  calc((100vw - 40px) / 8.4);
+  --flip-w:  calc(96vw / 8.01);
   --flip-h:  calc(var(--flip-w) * 1.4);
   --flip-fs: calc(var(--flip-w) * 1.1);
+  /* Bulletproof centering: works in all iOS Safari versions */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  -webkit-transform: translate(-50%, -50%);
+  -ms-transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%);
+  max-width: 96vw;
+  max-height: 96vh;
+  gap: 0 !important;
+  grid-gap: 0 !important;
+}
+
+/* ── Proportional gaps: use margin (flexbox gap unsupported in iOS 12) ── */
+[data-theme="minimalism"] .flip-group {
+  gap: 0;
+  grid-gap: 0;
+}
+
+[data-theme="minimalism"] .flip-group > * + * {
+  margin-left: 0;
+}
+
+[data-theme="minimalism"] #flip-clock {
+  gap: 0;
+  grid-gap: 0;
+  max-width: 96vw;
+}
+
+[data-theme="minimalism"] #flip-clock > * + * {
+  margin-left: 0;
+}
+
+/* Inner gap: tight spacing between the two cards within a group */
+[data-theme="minimalism"] .flip-group .flip-card + .flip-card {
+  margin-left: calc(var(--flip-w) * 0.03);
+}
+
+[data-theme="minimalism"] .flip-card {
+  -webkit-flex-shrink: 0;
+  -ms-flex-negative: 0;
+  flex-shrink: 0;
+}
+
+/* Outer gap: generous space around the colon separators.
+   Uses #flip-clock > .flip-sep (specificity 0,2,1,0) to beat the
+   #flip-clock > * + * (0,2,0,0) margin-left:0 reset above. */
+[data-theme="minimalism"] #flip-clock > .flip-sep {
+  -webkit-flex-shrink: 0;
+  -ms-flex-negative: 0;
+  flex-shrink: 0;
+  width: auto;
+  margin-left:  calc(var(--flip-w) * 0.08);
+  margin-right: calc(var(--flip-w) * 0.08);
+  text-align: center;
 }
 
 /* ── Digit color: Minimalism grey, no glow ─────────────────── */
@@ -1664,7 +1748,7 @@ body[data-theme="minimalism"]::after { display: none !important; }
   border-radius: 5px;
   background: #1c1c1c;
   box-shadow:
-    0 4px 20px rgba(0, 0, 0, 0.7),
+    0 4px 12px rgba(0, 0, 0, 0.7),
     0 1px 4px  rgba(0, 0, 0, 0.85);
 }
 
@@ -1677,32 +1761,40 @@ body[data-theme="minimalism"]::after { display: none !important; }
 
 /* ── AM/PM row ──────────────────────────────────────────── */
 #minimalism-ampm-row {
-  -webkit-box-orient: vertical;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: horizontal;
   -webkit-box-direction: normal;
-  -ms-flex-direction: column;
-  flex-direction: column;
-  -webkit-box-align: end;
-  -ms-flex-align: end;
-  align-items: flex-end;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-box-pack: end;
+  -ms-flex-pack: end;
+  justify-content: flex-end;
+  -webkit-box-align: baseline;
+  -ms-flex-align: baseline;
+  align-items: baseline;
   width: 100%;
-  margin-top: 10px;
-  gap: 3px;
-  grid-gap: 3px;
-  padding-right: 2px;
+  margin-top: calc(var(--flip-w) * 0.07);
+  gap: 0;
+  grid-gap: 0;
+  padding-right: 0;
 }
 
 #minimalism-ampm {
   font-family: var(--font-digital);
-  font-size: clamp(11px, 1.3vw, 15px);
+  font-size: calc(var(--flip-w) * 0.12);
   color: #555;
   letter-spacing: 0.14em;
   -webkit-user-select: none;
   user-select: none;
+  margin-left: calc(var(--flip-w) * 0.04);
+  margin-top: 0;
 }
 
 #minimalism-date {
   font-family: var(--font-digital);
-  font-size: clamp(26px, 4.2vw, 48px);
+  font-size: calc(var(--flip-w) * 0.36);
   color: #888;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -1781,44 +1873,45 @@ body[data-minimalism-seconds="hide"][data-theme="minimalism"] #flip-col2 {
 /* vw-based — no fixed max — always fits screen in any orientation               */
 
 body[data-minimalism-size="small"][data-theme="minimalism"] #clock-widget {
-  --flip-w:  calc((100vw - 40px) / 11.2);   /* ~60% of screen width */
+  --flip-w:  calc(96vw / 10.68);             /* ~60% of screen width */
   --flip-h:  calc(var(--flip-w) * 1.4);
   --flip-fs: calc(var(--flip-w) * 1.1);
 }
 
 body[data-minimalism-size="medium"][data-theme="minimalism"] #clock-widget {
-  --flip-w:  calc((100vw - 40px) / 8.4);    /* ~80% of screen width */
+  --flip-w:  calc(96vw / 8.01);              /* ~80% of screen width */
   --flip-h:  calc(var(--flip-w) * 1.4);
   --flip-fs: calc(var(--flip-w) * 1.1);
 }
 
 body[data-minimalism-size="large"][data-theme="minimalism"] #clock-widget {
-  --flip-w:  calc((100vw - 40px) / 6.7);    /* ~100%: fills screen  */
+  --flip-w:  calc(96vw / 7.2);               /* ~93%: fills screen with room for sep chars */
   --flip-h:  calc(var(--flip-w) * 1.4);
   --flip-fs: calc(var(--flip-w) * 1.1);
 }
 
 /* ── When seconds hidden: digits grow to fill the same width ── */
+/* Without seconds: 4W + 1×0.03W(inner) + 1×0.16W(sep) = 4.19W */
 body[data-minimalism-seconds="hide"][data-theme="minimalism"] #clock-widget {
-  --flip-w:  calc((100vw - 22px) / 5.44);   /* fallback medium ~80% */
+  --flip-w:  calc(96vw / 5.24);              /* fallback medium ~80% */
   --flip-h:  calc(var(--flip-w) * 1.4);
   --flip-fs: calc(var(--flip-w) * 1.1);
 }
 
 body[data-minimalism-seconds="hide"][data-minimalism-size="small"][data-theme="minimalism"] #clock-widget {
-  --flip-w:  calc((100vw - 22px) / 7.25);   /* ~60% */
+  --flip-w:  calc(96vw / 6.98);              /* ~60% */
   --flip-h:  calc(var(--flip-w) * 1.4);
   --flip-fs: calc(var(--flip-w) * 1.1);
 }
 
 body[data-minimalism-seconds="hide"][data-minimalism-size="medium"][data-theme="minimalism"] #clock-widget {
-  --flip-w:  calc((100vw - 22px) / 5.44);   /* ~80% */
+  --flip-w:  calc(96vw / 5.24);              /* ~80% */
   --flip-h:  calc(var(--flip-w) * 1.4);
   --flip-fs: calc(var(--flip-w) * 1.1);
 }
 
 body[data-minimalism-seconds="hide"][data-minimalism-size="large"][data-theme="minimalism"] #clock-widget {
-  --flip-w:  calc((100vw - 22px) / 4.35);   /* ~100%: fills screen */
+  --flip-w:  calc(96vw / 4.7);               /* ~93%: fills screen with room for sep char */
   --flip-h:  calc(var(--flip-w) * 1.4);
   --flip-fs: calc(var(--flip-w) * 1.1);
 }
