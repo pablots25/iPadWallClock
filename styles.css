@@ -594,6 +594,30 @@ body::after {
   color: var(--text-dim);
   text-transform: uppercase;
   padding-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.settings-label-input {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(200, 168, 75, 0.4);
+  outline: none;
+  color: var(--text-dim);
+  font-family: var(--font-ui);
+  font-size: 9px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  padding: 2px 4px;
+  -webkit-appearance: none;
+  flex: 0 1 auto;
+  min-width: 60px;
+}
+
+.settings-label-input:focus {
+  border-bottom-color: rgba(200, 168, 75, 0.8);
+  color: var(--text);
 }
 
 .settings-row {
@@ -1215,7 +1239,6 @@ body::after {
 
 #dim-overlay.dim-active {
   opacity: 1;
-  pointer-events: all;
 }
 
 /* ==========================================================
@@ -1286,7 +1309,7 @@ body::after {
 #btn-color {
   position: fixed;
   bottom: calc(20px + env(safe-area-inset-bottom));
-  right: calc(124px + env(safe-area-inset-right));
+  right: calc(72px + env(safe-area-inset-right));
   z-index: 10000;
   width: 44px;
   height: 44px;
@@ -1485,22 +1508,35 @@ body[data-theme="minimalism"]::after { display: none !important; }
 
 /* ── AM/PM row ──────────────────────────────────────────── */
 #minimalism-ampm-row {
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  -webkit-box-align: end;
+  -ms-flex-align: end;
+  align-items: flex-end;
   width: 100%;
-  margin-top: 8px;
-  -webkit-box-pack: start;
-  -ms-flex-pack: start;
-  justify-content: flex-start;
-  padding-left: 4px;
+  margin-top: 10px;
+  gap: 3px;
+  grid-gap: 3px;
+  padding-right: 2px;
 }
 
 #minimalism-ampm {
   font-family: var(--font-digital);
-  font-size: clamp(12px, 1.5vw, 18px);
-  color: #777;
+  font-size: clamp(11px, 1.3vw, 15px);
+  color: #555;
+  letter-spacing: 0.14em;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+#minimalism-date {
+  font-family: var(--font-digital);
+  font-size: clamp(26px, 4.2vw, 48px);
+  color: #888;
   letter-spacing: 0.12em;
+  text-transform: uppercase;
   -webkit-user-select: none;
   user-select: none;
 }
@@ -1540,17 +1576,17 @@ body[data-theme="minimalism"]::after { display: none !important; }
 
 #corner-weather-icon svg {
   display: block;
-  width: 48px;
-  height: 48px;
-  opacity: 0.55;
-  -webkit-filter: grayscale(1) brightness(1.6);
-  filter: grayscale(1) brightness(1.6);
+  width: 64px;
+  height: 64px;
+  opacity: 0.80;
+  -webkit-filter: grayscale(0.2) brightness(1.4);
+  filter: grayscale(0.2) brightness(1.4);
 }
 
 #corner-weather-temp {
   font-family: var(--font-digital);
   font-size: clamp(38px, 5.5vw, 62px);
-  color: rgba(255, 255, 255, 0.65);
+  color: rgba(255, 255, 255, 0.82);
   letter-spacing: 0.08em;
   line-height: 1;
 }
@@ -1558,7 +1594,7 @@ body[data-theme="minimalism"]::after { display: none !important; }
 #corner-weather-label {
   font-family: var(--font-ui);
   font-size: clamp(16px, 2.2vw, 22px);
-  color: rgba(255, 255, 255, 0.40);
+  color: rgba(255, 255, 255, 0.58);
   letter-spacing: 0.10em;
   text-transform: uppercase;
   line-height: 1.3;
@@ -1652,6 +1688,7 @@ body[data-minimalism-seconds="hide"][data-minimalism-size="large"][data-theme="m
   -webkit-box-direction: normal;
   -ms-flex-direction: column;
   flex-direction: column;
+  pointer-events: none;
   /* peek: handle (4px) + margins (14+6px) + safe area buffer = 44px always visible */
   -webkit-transform: translateY(calc(100% - 44px));
   transform: translateY(calc(100% - 44px));
@@ -1659,7 +1696,12 @@ body[data-minimalism-seconds="hide"][data-minimalism-size="large"][data-theme="m
   transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1), background 0s 0.35s;
 }
 
+#cal-panel-handle-row {
+  pointer-events: auto;
+}
+
 #cal-panel.cp-open {
+  pointer-events: auto;
   -webkit-transform: translateY(0);
   transform: translateY(0);
   background: #0c0c0c;
@@ -1668,17 +1710,34 @@ body[data-minimalism-seconds="hide"][data-minimalism-size="large"][data-theme="m
   transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1), background 0s 0s;
 }
 
-/* ── Drag handle ── */
-#cal-panel-drag {
-  width: 36px;
-  height: 4px;
-  background: rgba(255, 255, 255, 0.18);
-  border-radius: 2px;
-  margin: 14px auto 6px;
+/* ── Drag handle row (pill + today badge) ── */
+#cal-panel-handle-row {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  position: relative;
+  padding: 14px 20px 6px;
   -webkit-flex-shrink: 0;
   -ms-flex-negative: 0;
   flex-shrink: 0;
   cursor: pointer;
+}
+
+/* ── Drag handle ── */
+#cal-panel-drag {
+  width: 48px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.35);
+  border-radius: 3px;
+  -webkit-flex-shrink: 0;
+  -ms-flex-negative: 0;
+  flex-shrink: 0;
 }
 
 /* ── Scrollable inner ── */
@@ -1730,7 +1789,7 @@ body[data-minimalism-seconds="hide"][data-minimalism-size="large"][data-theme="m
   opacity: 0.85;
 }
 
-/* ── Feed name ── */
+/* ── Feed name (now input field) ── */
 .cp-name {
   -webkit-box-flex: 1;
   -ms-flex: 1;
@@ -1740,6 +1799,18 @@ body[data-minimalism-seconds="hide"][data-minimalism-size="large"][data-theme="m
   color: rgba(255, 255, 255, 0.65);
   letter-spacing: 0.14em;
   text-transform: uppercase;
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 0;
+  -webkit-appearance: none;
+  width: 100%;
+  min-width: 0;
+}
+
+.cp-name:focus {
+  border-bottom: 2px solid rgba(200, 168, 75, 0.6);
+  padding-bottom: 2px;
 }
 
 /* ── Chevron arrow ── */
@@ -1814,5 +1885,145 @@ body[data-minimalism-seconds="hide"][data-minimalism-size="large"][data-theme="m
   letter-spacing: 0.06em;
   color: rgba(255, 255, 255, 0.25);
   padding: 10px 0 16px;
+}
+
+/* ==========================================================
+   COLOR PICKER PALETTE
+   ========================================================== */
+
+#color-picker {
+  position: fixed;
+  bottom: calc(72px + env(safe-area-inset-bottom));
+  right: calc(20px + env(safe-area-inset-right));
+  z-index: 10001;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  gap: 8px;
+  grid-gap: 8px;
+  -webkit-transform: scale(0.7) translateY(12px);
+  transform: scale(0.7) translateY(12px);
+  opacity: 0;
+  pointer-events: none;
+  -webkit-transform-origin: bottom right;
+  transform-origin: bottom right;
+  -webkit-transition: opacity 0.18s ease, -webkit-transform 0.18s ease;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+#color-picker.cp-open {
+  opacity: 1;
+  pointer-events: auto;
+  -webkit-transform: scale(1) translateY(0);
+  transform: scale(1) translateY(0);
+}
+
+.color-swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-transition: -webkit-transform 0.12s ease, border-color 0.12s ease;
+  transition: transform 0.12s ease, border-color 0.12s ease;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  padding: 0;
+  background-clip: content-box;
+}
+
+.color-swatch[data-color="amber"]  { background-color: #c8a84b; }
+.color-swatch[data-color="green"]  { background-color: #39ff14; }
+.color-swatch[data-color="blue"]   { background-color: #00d4ff; }
+.color-swatch[data-color="red"]    { background-color: #ff3c28; }
+.color-swatch[data-color="white"]  { background-color: #aaaaaa; }
+
+.color-swatch.is-active {
+  border-color: rgba(255, 255, 255, 0.7);
+  -webkit-transform: scale(1.15);
+  transform: scale(1.15);
+}
+
+.color-swatch:active {
+  -webkit-transform: scale(0.9);
+  transform: scale(0.9);
+}
+
+/* ==========================================================
+   CALENDAR SWIPE HINT
+   ========================================================== */
+
+#cal-hint {
+  display: block;
+  text-align: center;
+  font-family: var(--font-digital);
+  font-size: clamp(10px, 1.3vw, 12px);
+  letter-spacing: 0.14em;
+  color: rgba(255, 255, 255, 0.32);
+  text-transform: uppercase;
+  padding: 4px 0 6px;
+  pointer-events: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-transition: opacity 0.3s ease;
+  transition: opacity 0.3s ease;
+}
+
+#cal-hint.hint-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ==========================================================
+   CALENDAR TODAY BADGE
+   ========================================================== */
+
+#cal-today-badge {
+  display: none;
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.82);
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.30);
+  border-radius: 4px;
+  padding: 2px 7px;
+  white-space: nowrap;
+  position: fixed;
+  bottom: calc(44px + 6px + env(safe-area-inset-bottom));
+  left: 50%;
+  z-index: 5002;
+  pointer-events: none;
+  -webkit-transform: translateX(-50%);
+  transform: translateX(-50%);
+  -webkit-transition: opacity 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+  transition: opacity 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+#cal-today-badge.has-events {
+  display: inline-block;
+  opacity: 1;
+}
+
+#cal-today-badge.has-events.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ==========================================================
+   SETTINGS DIVIDER
+   ========================================================== */
+
+.settings-divider {
+  width: 100%;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
+  margin: 4px 0 12px;
 }
 

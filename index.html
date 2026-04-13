@@ -42,59 +42,7 @@
     <!-- ═══════════════ TOP: Flip Clock ═══════════════ -->
     <section id="clock-section">
 
-      <!-- ── LCD Clock (shown when data-theme="lcd") ── -->
-      <div id="lcd-clock">
-        <div id="lcd-header">
-          <span id="lcd-header-left">&#9650; CASIO &#8594; WORLD TIME</span>
-          <span id="lcd-header-right">
-            <span class="lcd-dot">&#9679;</span>
-            <span class="lcd-dot">&#9679;</span>
-            <span class="lcd-badge">24H</span>
-          </span>
-        </div>
-        <div id="lcd-digits">
-          <!-- Hours -->
-          <div class="flip-group" id="flip-lcd-hh">
-            <div class="flip-card lcd-flip" id="flip-lcd-hh-0">
-              <div class="flip-static-top"><span>0</span></div>
-              <div class="flip-static-bot"><span>0</span></div>
-              <div class="flip-anim">
-                <div class="flip-anim-top"><span>0</span></div>
-                <div class="flip-anim-bot"><span>0</span></div>
-              </div>
-            </div>
-            <div class="flip-card lcd-flip" id="flip-lcd-hh-1">
-              <div class="flip-static-top"><span>0</span></div>
-              <div class="flip-static-bot"><span>0</span></div>
-              <div class="flip-anim">
-                <div class="flip-anim-top"><span>0</span></div>
-                <div class="flip-anim-bot"><span>0</span></div>
-              </div>
-            </div>
-          </div>
-          <div class="flip-sep lcd-flip-sep" id="lcd-col">:</div>
-          <!-- Minutes -->
-          <div class="flip-group" id="flip-lcd-mm">
-            <div class="flip-card lcd-flip" id="flip-lcd-mm-0">
-              <div class="flip-static-top"><span>0</span></div>
-              <div class="flip-static-bot"><span>0</span></div>
-              <div class="flip-anim">
-                <div class="flip-anim-top"><span>0</span></div>
-                <div class="flip-anim-bot"><span>0</span></div>
-              </div>
-            </div>
-            <div class="flip-card lcd-flip" id="flip-lcd-mm-1">
-              <div class="flip-static-top"><span>0</span></div>
-              <div class="flip-static-bot"><span>0</span></div>
-              <div class="flip-anim">
-                <div class="flip-anim-top"><span>0</span></div>
-                <div class="flip-anim-bot"><span>0</span></div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div id="lcd-date">LUN01-ENE-2025</div>
-      </div>
+
 
       <!-- ── Flip Clock (shown when data-theme="flip") ── -->
       <div id="clock-widget">
@@ -164,8 +112,8 @@
             </div>
           </div>
         </div>
-        <!-- AM/PM label: shown only in minimalism theme -->
-        <div id="minimalism-ampm-row"><span id="minimalism-ampm">AM</span></div>
+        <!-- Date + AM/PM: shown only in minimalism theme -->
+        <div id="minimalism-ampm-row"><span id="minimalism-date">LUN · 01 ENE</span><span id="minimalism-ampm">AM</span></div>
       </div><!-- /#clock-widget -->
 
     </section>
@@ -217,19 +165,20 @@
   </div><!-- /#app -->
 
   <!-- ═══════════════ Settings Panel ═══════════════ -->
+
+  <!-- Color picker palette (opens above btn-color) -->
+  <div id="color-picker" role="listbox" aria-label="Seleccionar color">
+    <button class="color-swatch" data-color="amber" style="background:#c8a84b" aria-label="Ámbar"></button>
+    <button class="color-swatch" data-color="green" style="background:#39ff14" aria-label="Verde"></button>
+    <button class="color-swatch" data-color="blue" style="background:#00d4ff" aria-label="Azul"></button>
+    <button class="color-swatch" data-color="red" style="background:#ff3c28" aria-label="Rojo"></button>
+    <button class="color-swatch" data-color="white" style="background:#aaaaaa" aria-label="Blanco"></button>
+  </div>
+
   <button id="btn-color" aria-label="Cambiar color de tema" title="Cambiar color">
     <svg viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg">
       <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.5"/>
       <circle cx="12" cy="12" r="6" fill="#c8a84b" id="btn-color-fill"/>
-    </svg>
-  </button>
-
-  <button id="theme-btn" aria-label="Cambiar tema" title="Cambiar tema">
-    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <rect x="3" y="3" width="8" height="8" rx="1"/>
-      <rect x="13" y="3" width="8" height="8" rx="1"/>
-      <rect x="3" y="13" width="8" height="8" rx="1"/>
-      <path d="M17 13v8M13 17h8"/>
     </svg>
   </button>
 
@@ -249,31 +198,35 @@
 
   <!-- ═══════════════ Calendar Slide-up Panel ═══════════════ -->
   <div id="cal-panel-overlay"></div>
+  <span id="cal-today-badge"></span>
   <div id="cal-panel" role="dialog" aria-label="Calendarios">
-    <div id="cal-panel-drag"></div>
+    <div id="cal-panel-handle-row">
+      <div id="cal-panel-drag"></div>
+    </div>
+    <span id="cal-hint">&#8593; EVENTOS</span>
     <div id="cal-panel-inner">
 
       <!-- Feed 1 -->
       <div class="cp-section" id="cp-section-0">
-        <button class="cp-header" id="cp-header-0" type="button">
+        <div class="cp-header" id="cp-header-0">
           <span class="cp-dot" id="cp-dot-0"></span>
-          <span class="cp-name" id="cp-name-0">Yo</span>
+          <input type="text" class="cp-name" id="cp-name-0" value="Yo" maxlength="30">
           <svg class="cp-arrow" viewBox="0 0 10 10" width="12" height="12" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M3 2l4 3-4 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
-        </button>
+        </div>
         <div class="cp-list" id="cp-list-0"></div>
       </div>
 
       <!-- Feed 2 -->
       <div class="cp-section" id="cp-section-1">
-        <button class="cp-header" id="cp-header-1" type="button">
+        <div class="cp-header" id="cp-header-1">
           <span class="cp-dot" id="cp-dot-1"></span>
-          <span class="cp-name" id="cp-name-1">Pareja</span>
+          <input type="text" class="cp-name" id="cp-name-1" value="Pareja" maxlength="30">
           <svg class="cp-arrow" viewBox="0 0 10 10" width="12" height="12" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M3 2l4 3-4 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
-        </button>
+        </div>
         <div class="cp-list" id="cp-list-1"></div>
       </div>
 
@@ -287,31 +240,7 @@
       <button id="settings-close" aria-label="Cerrar ajustes">✕</button>
     </div>
 
-    <div class="settings-section-label">CALENDARIO 1 — Yo</div>
-    <div class="settings-row">
-      <input type="text" id="feed1-url" class="settings-input" placeholder="URL iCal de Google Calendar…" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
-      <input type="color" id="feed1-color" class="settings-color" value="#00f0ff">
-      <input type="text" id="feed1-name" class="settings-name" placeholder="Mi nombre" autocorrect="off">
-    </div>
-
-    <div class="settings-section-label">CALENDARIO 2 — Pareja</div>
-    <div class="settings-row">
-      <input type="text" id="feed2-url" class="settings-input" placeholder="URL iCal de Google Calendar…" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
-      <input type="color" id="feed2-color" class="settings-color" value="#00ff88">
-      <input type="text" id="feed2-name" class="settings-name" placeholder="Nombre pareja" autocorrect="off">
-    </div>
-
-    <div class="settings-hint">
-      En Google Calendar: ⚙ → Ajustes del calendario → "Dirección secreta en formato iCal"<br>
-      Solo funcionan URLs de Google Calendar (restricción CORS del navegador).
-    </div>
-
-    <div class="settings-hint settings-hint-wake">
-      Para mantener la pantalla encendida:<br>
-      Ajustes iOS → Pantalla y brillo → Bloqueo automático → Nunca
-    </div>
-
-    <div class="settings-section-label">MINIMALISM</div>
+    <div class="settings-section-label">PANTALLA</div>
     <div class="settings-row settings-row--opt">
       <span class="settings-opt-label">Segundos</span>
       <div class="settings-btn-group" id="minimalism-seconds-group">
@@ -326,6 +255,32 @@
         <button class="settings-group-btn" data-size="medium">M</button>
         <button class="settings-group-btn" data-size="large">G</button>
       </div>
+    </div>
+
+    <div class="settings-divider"></div>
+
+    <div class="settings-section-label">CALENDARIO 1 — <input type="text" id="settings-name-0" class="settings-label-input" maxlength="30" value="Yo"></div>
+    <div class="settings-row">
+      <input type="text" id="feed1-url" class="settings-input" placeholder="URL iCal de Google Calendar…" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
+      <input type="color" id="feed1-color" class="settings-color" value="#00f0ff">
+      <input type="text" id="feed1-name" class="settings-name" placeholder="Mi nombre" autocorrect="off">
+    </div>
+
+    <div class="settings-section-label">CALENDARIO 2 — <input type="text" id="settings-name-1" class="settings-label-input" maxlength="30" value="Pareja"></div>
+    <div class="settings-row">
+      <input type="text" id="feed2-url" class="settings-input" placeholder="URL iCal de Google Calendar…" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
+      <input type="color" id="feed2-color" class="settings-color" value="#00ff88">
+      <input type="text" id="feed2-name" class="settings-name" placeholder="Nombre pareja" autocorrect="off">
+    </div>
+
+    <div class="settings-hint">
+      En Google Calendar: ⚙ → Ajustes del calendario → "Dirección secreta en formato iCal"<br>
+      Solo funcionan URLs de Google Calendar (restricción CORS del navegador).
+    </div>
+
+    <div class="settings-hint settings-hint-wake">
+      Para mantener la pantalla encendida:<br>
+      Ajustes iOS → Pantalla y brillo → Bloqueo automático → Nunca
     </div>
 
     <div class="settings-actions">

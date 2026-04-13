@@ -125,15 +125,6 @@
     ss: [
       document.getElementById('flip-ss-0'),
       document.getElementById('flip-ss-1')
-    ],
-    /* LCD theme flip cards (HH:MM only, no seconds) */
-    lhh: [
-      document.getElementById('flip-lcd-hh-0'),
-      document.getElementById('flip-lcd-hh-1')
-    ],
-    lmm: [
-      document.getElementById('flip-lcd-mm-0'),
-      document.getElementById('flip-lcd-mm-1')
     ]
   };
   var elCasioDay  = document.getElementById('casio-day');
@@ -143,30 +134,22 @@
   var elWeatherTemp = document.getElementById('weather-temp');
   var elWeatherLbl  = document.getElementById('weather-label');
   var elCalList     = document.getElementById('calendar-list');
-  /* LCD clock elements */
-  var elLcdDate = document.getElementById('lcd-date');
-
-  /* LCD weather detail elements */
-  var elWdRain = document.getElementById('wd-rain');
-  var elWdFeel = document.getElementById('wd-feel');
-  var elWdHum  = document.getElementById('wd-hum');
-  var elWdWind = document.getElementById('wd-wind');
-
-  var elThemeBtn = document.getElementById('theme-btn');
-  var elCalTitle = document.getElementById('cal-title');
 
   /* Minimalism theme elements */
-  var elMinimalismAmpm           = document.getElementById('minimalism-ampm');
-  var elCornerWeatherIcon    = document.getElementById('corner-weather-icon');
-  var elCornerWeatherTemp    = document.getElementById('corner-weather-temp');
-  var elCornerWeatherLabel   = document.getElementById('corner-weather-label');
-  var elMinimalismSecondsGroup   = document.getElementById('minimalism-seconds-group');
-  var elMinimalismSizeGroup      = document.getElementById('minimalism-size-group');
+  var elMinimalismAmpm         = document.getElementById('minimalism-ampm');
+  var elMinimalismDate         = document.getElementById('minimalism-date');
+  var elCornerWeatherIcon      = document.getElementById('corner-weather-icon');
+  var elCornerWeatherTemp      = document.getElementById('corner-weather-temp');
+  var elCornerWeatherLabel     = document.getElementById('corner-weather-label');
+  var elMinimalismSecondsGroup = document.getElementById('minimalism-seconds-group');
+  var elMinimalismSizeGroup    = document.getElementById('minimalism-size-group');
+  var elCalTodayBadge          = document.getElementById('cal-today-badge');
 
   /* Calendar slide-up panel elements */
   var elCalPanel     = document.getElementById('cal-panel');
   var elCalPanelOvl  = document.getElementById('cal-panel-overlay');
-  var elCalPanelDrag = document.getElementById('cal-panel-drag');
+  var elCalPanelDrag    = document.getElementById('cal-panel-drag');
+  var elCalHandleRow     = document.getElementById('cal-panel-handle-row');
   var elCpSections   = [document.getElementById('cp-section-0'), document.getElementById('cp-section-1')];
   var elCpHeaders    = [document.getElementById('cp-header-0'),  document.getElementById('cp-header-1')];
   var elCpDots       = [document.getElementById('cp-dot-0'),     document.getElementById('cp-dot-1')];
@@ -194,6 +177,8 @@
   var elFeed2Url    = document.getElementById('feed2-url');
   var elFeed2Color  = document.getElementById('feed2-color');
   var elFeed2Name   = document.getElementById('feed2-name');
+  var elSettingsName0 = document.getElementById('settings-name-0');
+  var elSettingsName1 = document.getElementById('settings-name-1');
 
   /* ── Flip card helper ──────────────────────────────── */
   // Each .flip-card holds:
@@ -201,7 +186,7 @@
   //   .flip-static-bot span  — shows bot-half of CURRENT value
   //   .flip-anim-top span    — animated flap: top-half of OLD value (folds away)
   //   .flip-anim-bot span    — animated flap: bot-half of NEW value (unfolds in)
-  var flipValues = { hh: ['0','0'], mm: ['0','0'], ss: ['0','0'], lhh: ['0','0'], lmm: ['0','0'] };
+  var flipValues = { hh: ['0','0'], mm: ['0','0'], ss: ['0','0'] };
 
   function setFlipDigit(card, oldChar, newChar) {
     if (oldChar === newChar) return;
@@ -265,25 +250,15 @@
       flipValues.mm = [mm0, mm1];
       flipValues.ss = [ss0, ss1];
 
-      elCasioAmpm.textContent = h >= 12 ? 'PM' : 'AM';
+      if (elCasioAmpm) { elCasioAmpm.textContent = h >= 12 ? 'PM' : 'AM'; }
       if (elMinimalismAmpm) { elMinimalismAmpm.textContent = h >= 12 ? 'PM' : 'AM'; }
-      elCasioDay.textContent  = DAYS[now.getDay()].toUpperCase();
-      elCasioDate.textContent = pad(now.getDate()) + '.' +
+      if (elCasioDay)  { elCasioDay.textContent  = DAYS[now.getDay()].toUpperCase(); }
+      if (elCasioDate) { elCasioDate.textContent = pad(now.getDate()) + '.' +
         MONTHS[now.getMonth()].substring(0, 3).toUpperCase() + '.' +
-        now.getFullYear();
-
-      /* ── LCD clock update (flip animation) ── */
-      setFlipDigit(flipCards.lhh[0], flipValues.lhh[0], hh0);
-      setFlipDigit(flipCards.lhh[1], flipValues.lhh[1], hh1);
-      setFlipDigit(flipCards.lmm[0], flipValues.lmm[0], mm0);
-      setFlipDigit(flipCards.lmm[1], flipValues.lmm[1], mm1);
-      flipValues.lhh = [hh0, hh1];
-      flipValues.lmm = [mm0, mm1];
-      if (elLcdDate) {
-        elLcdDate.textContent = DAYS_SHORT[now.getDay()] +
-          pad(now.getDate()) + '-' +
-          MONTHS_SHORT[now.getMonth()] + '-' +
-          now.getFullYear();
+        now.getFullYear(); }
+      if (elMinimalismDate) {
+        elMinimalismDate.textContent = DAYS_SHORT[now.getDay()] + ' · ' +
+          pad(now.getDate()) + ' ' + MONTHS_SHORT[now.getMonth()];
       }
     }
 
@@ -337,29 +312,9 @@
         var code = cw.weathercode;
         var info = getWmoInfo(code);
 
-        elWeatherIcon.innerHTML = getWeatherSVG(info.icon);
-        elWeatherTemp.textContent = temp + '°C';
-        elWeatherLbl.textContent  = info.label;
-        elWeatherTemp.style.color = 'var(--green)';
-
-        /* LCD extra weather details */
-        var cur = data.current || {};
-        if (elWdRain) {
-          var rain = cur.precipitation_probability;
-          elWdRain.textContent = (rain !== undefined && rain !== null) ? rain + '%' : '--%';
-        }
-        if (elWdFeel) {
-          var feel = cur.apparent_temperature;
-          elWdFeel.textContent = (feel !== undefined && feel !== null) ? Math.round(feel) + '°' : '--°';
-        }
-        if (elWdHum) {
-          var hum = cur.relative_humidity_2m;
-          elWdHum.textContent = (hum !== undefined && hum !== null) ? Math.round(hum) + '%' : '--%';
-        }
-        if (elWdWind) {
-          var wind = cur.wind_speed_10m;
-          elWdWind.textContent = (wind !== undefined && wind !== null) ? Math.round(wind) + ' KM/H' : '-- KM/H';
-        }
+        if (elWeatherIcon) { elWeatherIcon.innerHTML = getWeatherSVG(info.icon); }
+        if (elWeatherTemp) { elWeatherTemp.textContent = temp + '°C'; }
+        if (elWeatherLbl)  { elWeatherLbl.textContent  = info.label; }
 
         /* Sunrise / sunset / UV from daily data */
         var daily = data.daily || {};
@@ -393,11 +348,11 @@
         if (elCornerWeatherLabel) { elCornerWeatherLabel.textContent = info.label; }
         if (elCornerWeatherIcon)  { elCornerWeatherIcon.innerHTML    = getWeatherSVG(info.icon).replace(/width="36" height="36"/g, 'width="36" height="36"'); }
         /* Reset weather temp color to let CSS rule (var(--lcd2)) apply */
-        elWeatherTemp.style.color = '';
+        if (elWeatherTemp) { elWeatherTemp.style.color = ''; }
       })
       .catch(function(err) {
         console.warn('[Weather] Error:', err);
-        elWeatherLbl.innerHTML = '<span class="weather-error">Sin datos del tiempo</span>';
+        if (elWeatherLbl) { elWeatherLbl.innerHTML = '<span class="weather-error">Sin datos del tiempo</span>'; }
       });
   }
 
@@ -415,9 +370,9 @@
   }
 
   function onGeoError() {
-    elWeatherLbl.innerHTML = '<span class="weather-error">Ubicación denegada</span>';
-    elWeatherTemp.textContent = '--°C';
-    elWeatherIcon.innerHTML = getWeatherSVG('cloud');
+    if (elWeatherLbl)  { elWeatherLbl.innerHTML  = '<span class="weather-error">Ubicación denegada</span>'; }
+    if (elWeatherTemp) { elWeatherTemp.textContent = '--°C'; }
+    if (elWeatherIcon) { elWeatherIcon.innerHTML   = getWeatherSVG('cloud'); }
   }
 
   /* ── Night Dimming ─────────────────────────────────────── */
@@ -438,12 +393,13 @@
     }
   }
 
-  if (elDimOverlay) {
-    elDimOverlay.addEventListener('touchstart', function() {
-      dimOverrideUntil = Date.now() + 5 * 60 * 1000;
-      updateDimming();
-    }, { passive: true });
-  }
+  /* Any touch dismisses the dim overlay for 5 minutes */
+  document.addEventListener('touchstart', function() {
+    if (!elDimOverlay) return;
+    if (elDimOverlay.className.indexOf('dim-active') === -1) return;
+    dimOverrideUntil = Date.now() + 5 * 60 * 1000;
+    updateDimming();
+  }, { passive: true });
 
   /* ── Wake Lock via silent AudioContext ─────────────────── */
   function initWakeLock() {
@@ -796,11 +752,11 @@
       var feed = calendarFeeds[fi] || null;
 
       if (elCpDots[fi])  { elCpDots[fi].style.background  = cfg.color || '#444'; }
-      if (elCpNames[fi]) { elCpNames[fi].textContent       = cfg.name  || ('Cal ' + (fi + 1)); }
+      if (elCpNames[fi]) { elCpNames[fi].value = cfg.name  || ('Cal ' + (fi + 1)); }
       if (!elCpLists[fi]) continue;
 
       if (!feed || !feed.events || feed.events.length === 0) {
-        elCpLists[fi].innerHTML = '<div class="cp-empty">Sin eventos pr\u00f3ximos.</div>';
+        elCpLists[fi].innerHTML = '<div class="cp-empty">Sin eventos próximos.</div>';
         continue;
       }
 
@@ -809,27 +765,52 @@
         var ev   = feed.events[ei];
         var next = getNextOccurrence(ev, now);
         if (next !== null && next <= horizon) {
-          items.push({ title: ev.summary || '(Sin t\u00edtulo)', date: next });
+          items.push({ title: ev.summary || '(Sin título)', date: next });
         }
       }
       items.sort(function(a, b) { return a.date - b.date; });
       items = items.slice(0, 10);
 
       if (items.length === 0) {
-        elCpLists[fi].innerHTML = '<div class="cp-empty">Sin eventos pr\u00f3ximos (14 d\u00edas).</div>';
+        elCpLists[fi].innerHTML = '<div class="cp-empty">Sin eventos próximos (14 días).</div>';
         continue;
       }
 
       var html = '';
       for (var i = 0; i < items.length; i++) {
         var item  = items[i];
-        var title = item.title.length > 42 ? item.title.substring(0, 40) + '\u2026' : item.title;
+        var title = item.title.length > 42 ? item.title.substring(0, 40) + '…' : item.title;
         html += '<div class="cp-ev">' +
           '<span class="cp-ev-time">' + formatEventDate(item.date) + '</span>' +
           '<span class="cp-ev-title">' + escapeHtml(title) + '</span>' +
         '</div>';
       }
       elCpLists[fi].innerHTML = html;
+    }
+
+    /* Update today badge on drag handle */
+    updateTodayBadge();
+  }
+
+  function updateTodayBadge() {
+    if (!elCalTodayBadge) return;
+    var todayCount = 0;
+    var nowBadge   = new Date();
+    for (var fb = 0; fb < calendarFeeds.length; fb++) {
+      var feedB = calendarFeeds[fb];
+      if (!feedB || !feedB.events) continue;
+      for (var eb = 0; eb < feedB.events.length; eb++) {
+        var nextB = getNextOccurrence(feedB.events[eb], nowBadge);
+        if (nextB && isToday(nextB)) { todayCount++; }
+      }
+    }
+    if (todayCount > 0) {
+      elCalTodayBadge.textContent = todayCount + ' hoy';
+      if (elCalTodayBadge.className.indexOf('has-events') === -1) {
+        elCalTodayBadge.className = (elCalTodayBadge.className + ' has-events').trim();
+      }
+    } else {
+      elCalTodayBadge.className = elCalTodayBadge.className.replace(/\s*has-events/g, '').trim();
     }
   }
 
@@ -901,6 +882,7 @@
             pending--;
             if (pending <= 0) {
               renderCalendar();
+              updateTodayBadge();
               // Show any CORS errors
               var errorMsgs = [];
               for (var ci = 0; ci < calendarFeeds.length; ci++) {
@@ -950,12 +932,12 @@
       {
         url:   elFeed1Url.value.trim(),
         color: elFeed1Color.value,
-        name:  elFeed1Name.value.trim() || 'Yo'
+        name:  (elSettingsName0 && elSettingsName0.value.trim()) || elFeed1Name.value.trim() || 'Yo'
       },
       {
         url:   elFeed2Url.value.trim(),
         color: elFeed2Color.value,
-        name:  elFeed2Name.value.trim() || 'Pareja'
+        name:  (elSettingsName1 && elSettingsName1.value.trim()) || elFeed2Name.value.trim() || 'Pareja'
       }
     ];
     try {
@@ -963,8 +945,18 @@
     } catch(e) {
       console.warn('[Settings] localStorage error:', e);
     }
-    closeSettings();
-    refreshCalendars();
+    if (elSettingsSave) {
+      elSettingsSave.textContent = '\u2713 GUARDADO';
+      elSettingsSave.disabled = true;
+    }
+    setTimeout(function() {
+      if (elSettingsSave) {
+        elSettingsSave.textContent = 'GUARDAR';
+        elSettingsSave.disabled = false;
+      }
+      closeSettings();
+      refreshCalendars();
+    }, 1200);
   }
 
   function populateSettingsUI() {
@@ -977,6 +969,8 @@
     elFeed2Url.value   = f2.url   || '';
     elFeed2Color.value = f2.color || '#00ff88';
     elFeed2Name.value  = f2.name  || 'Pareja';
+    if (elSettingsName0) { elSettingsName0.value = f1.name || 'Yo'; }
+    if (elSettingsName1) { elSettingsName1.value = f2.name || 'Pareja'; }
   }
 
   function openSettings() {
@@ -1000,24 +994,42 @@
   elSettingsOvl.addEventListener('click', closeSettings);
   elSettingsSave.addEventListener('click', saveSettings);
 
-  /* ── Theme Toggle ──────────────────────────────────── */
-  function applyTheme(theme) {
-    document.body.setAttribute('data-theme', theme);
-    try { localStorage.setItem('clock-theme', theme); } catch(e) {}
-    if (elCalTitle) {
-      elCalTitle.textContent = theme === 'lcd'
-        ? 'SCHEDULE — NEXT 7 DAYS'
-        : 'PRÓXIMOS EVENTOS';
+  /* ── Name change handlers (calendar panel + settings) ──── */
+  function saveNameChanges() {
+    var feeds = loadSettings();
+    if (elCpNames[0]) { feeds[0].name = elCpNames[0].value.trim() || 'Yo'; }
+    if (elCpNames[1]) { feeds[1].name = elCpNames[1].value.trim() || 'Pareja'; }
+    if (elSettingsName0) { feeds[0].name = elSettingsName0.value.trim() || 'Yo'; }
+    if (elSettingsName1) { feeds[1].name = elSettingsName1.value.trim() || 'Pareja'; }
+    try {
+      localStorage.setItem('feeds', JSON.stringify(feeds));
+    } catch(e) {
+      console.warn('[Settings] localStorage error:', e);
     }
+    renderCalendarPanel();
+    if (elSettingsName0) { elSettingsName0.value = feeds[0].name; }
+    if (elSettingsName1) { elSettingsName1.value = feeds[1].name; }
+    if (elCpNames[0]) { elCpNames[0].value = feeds[0].name; }
+    if (elCpNames[1]) { elCpNames[1].value = feeds[1].name; }
   }
 
-  function toggleTheme() {
-    var current = document.body.getAttribute('data-theme') || 'flip';
-    applyTheme(current === 'flip' ? 'lcd' : current === 'lcd' ? 'minimalism' : 'flip');
+  if (elCpNames[0]) {
+    elCpNames[0].addEventListener('change', saveNameChanges);
+    elCpNames[0].addEventListener('blur', saveNameChanges);
+    elCpNames[0].addEventListener('click', function(e) { e.stopPropagation(); });
   }
-
-  if (elThemeBtn) {
-    elThemeBtn.addEventListener('click', toggleTheme);
+  if (elCpNames[1]) {
+    elCpNames[1].addEventListener('change', saveNameChanges);
+    elCpNames[1].addEventListener('blur', saveNameChanges);
+    elCpNames[1].addEventListener('click', function(e) { e.stopPropagation(); });
+  }
+  if (elSettingsName0) {
+    elSettingsName0.addEventListener('change', saveNameChanges);
+    elSettingsName0.addEventListener('blur', saveNameChanges);
+  }
+  if (elSettingsName1) {
+    elSettingsName1.addEventListener('change', saveNameChanges);
+    elSettingsName1.addEventListener('blur', saveNameChanges);
   }
 
   /* ── Color Theme ──────────────────────────────────── */
@@ -1032,18 +1044,44 @@
     if (circle) { circle.setAttribute('fill', fill); }
   }
 
-  function cycleColor() {
+  var elColorPicker = document.getElementById('color-picker');
+
+  function syncColorSwatches() {
     var current = document.body.getAttribute('data-color') || 'amber';
-    var idx = COLOR_THEMES.indexOf(current);
-    applyColor(COLOR_THEMES[(idx + 1) % COLOR_THEMES.length]);
+    if (!elColorPicker) return;
+    var swatches = elColorPicker.querySelectorAll('.color-swatch');
+    for (var i = 0; i < swatches.length; i++) {
+      swatches[i].classList.toggle('is-active', swatches[i].dataset.color === current);
+    }
   }
 
-  if (elColorBtn) { elColorBtn.addEventListener('click', cycleColor); }
+  function toggleColorPicker() {
+    if (!elColorPicker) return;
+    elColorPicker.classList.toggle('cp-open');
+    syncColorSwatches();
+  }
+
+  if (elColorBtn) { elColorBtn.addEventListener('click', toggleColorPicker); }
+
+  if (elColorPicker) {
+    elColorPicker.addEventListener('click', function(e) {
+      var swatch = e.target.closest('.color-swatch');
+      if (!swatch) return;
+      applyColor(swatch.dataset.color);
+      syncColorSwatches();
+      elColorPicker.classList.remove('cp-open');
+    });
+  }
+
+  document.addEventListener('click', function(e) {
+    if (!elColorPicker || !elColorPicker.classList.contains('cp-open')) return;
+    if (!elColorPicker.contains(e.target) && e.target !== elColorBtn) {
+      elColorPicker.classList.remove('cp-open');
+    }
+  });
 
   /* Restore persisted theme — always minimalism */
-  (function initTheme() {
-    applyTheme('minimalism');
-  })();
+  document.body.setAttribute('data-theme', 'minimalism');
 
   (function initColor() {
     var saved = null;
@@ -1121,6 +1159,12 @@
 
   /* ── Calendar Slide-up Panel ───────────────────────── */
   function openCalPanel() {
+    /* Dismiss the swipe hint on first use */
+    var elCalHint = document.getElementById('cal-hint');
+    if (elCalHint && elCalHint.style.display !== 'none') {
+      elCalHint.style.display = 'none';
+      try { localStorage.setItem('cal-hint-dismissed', '1'); } catch(e) {}
+    }
     renderCalendarPanel();
     /* Auto-expand both sections */
     for (var i = 0; i < 2; i++) {
@@ -1135,19 +1179,28 @@
     if (elCalPanelOvl && elCalPanelOvl.className.indexOf('cp-open') === -1) {
       elCalPanelOvl.className = elCalPanelOvl.className + ' cp-open';
     }
+    /* Hide badge */
+    if (elCalTodayBadge) {
+      elCalTodayBadge.className = (elCalTodayBadge.className + ' is-hidden').trim();
+    }
   }
 
   function closeCalPanel() {
     if (elCalPanel)    { elCalPanel.className    = elCalPanel.className.replace(/\s*cp-open/g, ''); }
     if (elCalPanelOvl) { elCalPanelOvl.className = elCalPanelOvl.className.replace(/\s*cp-open/g, ''); }
+    /* Show badge */
+    if (elCalTodayBadge) {
+      elCalTodayBadge.className = elCalTodayBadge.className.replace(/\s*is-hidden/g, '').trim();
+    }
   }
 
   /* Overlay tap → close */
   if (elCalPanelOvl) { elCalPanelOvl.addEventListener('click', closeCalPanel); }
 
   /* Drag handle tap → toggle */
-  if (elCalPanelDrag) {
-    elCalPanelDrag.addEventListener('click', function() {
+  var _handleTapTarget = elCalHandleRow || elCalPanelDrag;
+  if (_handleTapTarget) {
+    _handleTapTarget.addEventListener('click', function() {
       if (elCalPanel && elCalPanel.className.indexOf('cp-open') !== -1) {
         closeCalPanel();
       } else {
@@ -1292,6 +1345,16 @@
         openCalPanel();
       }
     }, false);
+  })();
+
+  /* ── Cal hint: hide on load if already dismissed ────── */
+  (function initCalHint() {
+    var dismissed = null;
+    try { dismissed = localStorage.getItem('cal-hint-dismissed'); } catch(e) {}
+    if (dismissed) {
+      var elCalHint = document.getElementById('cal-hint');
+      if (elCalHint) { elCalHint.style.display = 'none'; }
+    }
   })();
 
   /* ── Page Visibility: pause when hidden, resume + refresh when visible ── */
