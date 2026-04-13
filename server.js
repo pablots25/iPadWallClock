@@ -1,5 +1,5 @@
 /**
- * iPad Casio-Style Clock — server.js
+ * iPadWallFlipClock — server.js
  * ====================================
  * Tiny HTTPS static file server using Node.js stdlib only.
  * Zero npm dependencies.

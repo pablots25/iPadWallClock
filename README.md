@@ -1,6 +1,6 @@
-# iPad Casio Clock
+# iPadWallFlipClock
 
-A retro Casio-inspired digital clock web app for iPad, designed to be installed as a PWA (Progressive Web App) directly from Safari. Displays a flip-card clock with live weather, Google Calendar integration, and a slide-up calendar panel.
+A retro flip-style digital clock web app for iPad, designed to be installed as a PWA (Progressive Web App) directly from Safari. Displays a flip-card clock with live weather, Google Calendar integration, and a slide-up calendar panel.
 
 ## Features
 
@@ -167,9 +167,9 @@ The app was designed for personal use by two people (user + partner). Supporting
 
 The project went through two clock designs before settling on the flip card:
 
-1. **Analog SVG** — first implementation; removed because the requirement is "Casio-style digital".
+1. **Analog SVG** — first implementation; removed because the requirement is a digital flip clock.
 2. **LCD / 7-segment digits** — second implementation; removed in favor of the flip card.
-3. **Flip card (current)** — inspired by minimalism flip clock aesthetics and the [casio-dashboard](https://github.com/emipanelliok/casio-dashboard) reference. Each digit is a CSS 3D card with four layers (static top, static bottom, fold-away flap, unfold-in flap). Only digits that actually change animate, so the seconds group flips every tick while the hours group barely moves.
+3. **Flip card (current)** — inspired by minimalism flip clock aesthetics. Each digit is a CSS 3D card with four layers (static top, static bottom, fold-away flap, unfold-in flap). Only digits that actually change animate, so the seconds group flips every tick while the hours group barely moves.
 
 Both the Flip and LCD clock are rendered simultaneously — CSS `display:none` hides whichever is inactive. This avoids re-initialising flip-card state on theme toggle.
 
@@ -191,7 +191,7 @@ When the app is backgrounded (e.g. the iPad is locked or another app is in the f
 
 ### Warm amber palette instead of neon
 
-The original design used electric blue (`#00f0ff`) and acid green (`#00ff88`) neon accents. This was changed to a warm amber/gold (`#c8a84b`) and muted green (`#8fb87a`) palette to feel less futuristic and more consistent with real Casio hardware aesthetics. System fonts replace decorative display fonts for all UI labels.
+The original design used electric blue (`#00f0ff`) and acid green (`#00ff88`) neon accents. This was changed to a warm amber/gold (`#c8a84b`) and muted green (`#8fb87a`) palette for a classic retro feel. System fonts replace decorative display fonts for all UI labels.
 
 ### Near-real-time calendar polling (60 seconds)
 

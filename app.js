@@ -1,5 +1,5 @@
 /* ==========================================================
-   iPad Casio-Style Clock — app.js
+   iPadWallFlipClock — app.js
    Target: iPad Air, iOS 12.5 Safari
    ES5/ES6 compatible — no optional chaining, no nullish
    coalescing, no replaceAll(), no top-level await
@@ -127,9 +127,9 @@
       document.getElementById('flip-ss-1')
     ]
   };
-  var elCasioDay  = document.getElementById('casio-day');
-  var elCasioDate = document.getElementById('casio-date');
-  var elCasioAmpm = document.getElementById('casio-ampm');
+  var elClockDay  = document.getElementById('clock-day');
+  var elClockDate = document.getElementById('clock-date');
+  var elClockAmpm = document.getElementById('clock-ampm');
   var elWeatherIcon = document.getElementById('weather-icon');
   var elWeatherTemp = document.getElementById('weather-temp');
   var elWeatherLbl  = document.getElementById('weather-label');
@@ -250,10 +250,10 @@
       flipValues.mm = [mm0, mm1];
       flipValues.ss = [ss0, ss1];
 
-      if (elCasioAmpm) { elCasioAmpm.textContent = h >= 12 ? 'PM' : 'AM'; }
+      if (elClockAmpm) { elClockAmpm.textContent = h >= 12 ? 'PM' : 'AM'; }
       if (elMinimalismAmpm) { elMinimalismAmpm.textContent = h >= 12 ? 'PM' : 'AM'; }
-      if (elCasioDay)  { elCasioDay.textContent  = DAYS[now.getDay()].toUpperCase(); }
-      if (elCasioDate) { elCasioDate.textContent = pad(now.getDate()) + '.' +
+      if (elClockDay)  { elClockDay.textContent  = DAYS[now.getDay()].toUpperCase(); }
+      if (elClockDate) { elClockDate.textContent = pad(now.getDate()) + '.' +
         MONTHS[now.getMonth()].substring(0, 3).toUpperCase() + '.' +
         now.getFullYear(); }
       if (elMinimalismDate) {

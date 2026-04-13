@@ -1,5 +1,5 @@
 /* ==========================================================
-   iPad Casio-Style Clock — styles.css
+   iPadWallFlipClock — styles.css
    Target: iPad Air, iOS 12.5 Safari
    ========================================================== */
 
@@ -7,7 +7,7 @@
 :root {
   --bg: #111110;
   --bg2: #1a1917;
-  --lcd:  #c8a84b;       /* warm Casio amber/gold */
+  --lcd:  #c8a84b;       /* warm amber/gold */
   --lcd2: #8fb87a;       /* secondary green (weather) */
   --text: #d4d0c8;
   --text-dim: #666655;
@@ -169,9 +169,9 @@ body::after {
   text-transform: uppercase;
 }
 
-#casio-day  { color: var(--text-dim); }
-#casio-date { color: var(--text-dim); }
-#casio-ampm { color: var(--lcd); opacity: 0.75; }
+#clock-day  { color: var(--text-dim); }
+#clock-date { color: var(--text-dim); }
+#clock-ampm { color: var(--lcd); opacity: 0.75; }
 
 /* ── Flip clock row ── */
 #flip-clock {
@@ -755,7 +755,7 @@ body::after {
 }
 
 /* ═══════════════════════════════════════════════════════
-   LCD THEME — CASIO 7-Segment LCD style
+   LCD THEME — 7-Segment LCD style
    Active when: body[data-theme="lcd"]
    ═══════════════════════════════════════════════════════ */
 

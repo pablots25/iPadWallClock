@@ -1,4 +1,4 @@
-# Requirements — iPad Casio Clock
+# Requirements — iPadWallFlipClock
 
 ## Functional Requirements
 
@@ -58,7 +58,7 @@
 - The app shall be installable on iPad via Safari's "Add to Home Screen".
 - When launched from the home screen, the app shall run in fullscreen with no browser chrome (`apple-mobile-web-app-capable`).
 - A splash screen shall be displayed on launch.
-- The app icon and splash image shall reflect the Casio clock aesthetic.
+- The app icon and splash image shall reflect the iPadWallFlipClock aesthetic.
 
 ### FR8 — CORS Proxy for Calendar Feeds
 

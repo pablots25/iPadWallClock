@@ -1,5 +1,5 @@
 /* ==========================================================
-   iPad Casio-Style Clock — sw.js
+   iPadWallFlipClock — sw.js
    Service Worker — offline shell caching
    Must be served from the root path (same scope as app)
    ========================================================== */
