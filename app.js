@@ -160,6 +160,7 @@
   var elWdSunup        = document.getElementById('wd-sunup');
   var elWdSundown      = document.getElementById('wd-sundown');
   var elWdUv           = document.getElementById('wd-uv');
+  var elWeatherForecast = document.getElementById('weather-forecast');
   var elWeatherUpdated = document.getElementById('weather-updated');
   var elCalCountdown   = document.getElementById('cal-countdown');
   var elDimOverlay     = document.getElementById('dim-overlay');
@@ -301,7 +302,7 @@
       '&longitude=' + lon +
       '&current_weather=true' +
       '&current=apparent_temperature,relative_humidity_2m,wind_speed_10m,precipitation_probability' +
-      '&daily=sunrise,sunset,uv_index_max' +
+      '&daily=sunrise,sunset,uv_index_max,temperature_2m_max,temperature_2m_min,weathercode' +
       '&timezone=auto' +
       '&wind_speed_unit=kmh';
 
@@ -324,6 +325,13 @@
         var daily = data.daily || {};
         var dSunrise = (daily.sunrise && daily.sunrise[0]) ? daily.sunrise[0] : null;
         var dSunset  = (daily.sunset  && daily.sunset[0])  ? daily.sunset[0]  : null;
+        var dMaxTemp = (daily.temperature_2m_max && daily.temperature_2m_max[0] !== undefined && daily.temperature_2m_max[0] !== null)
+          ? Math.round(daily.temperature_2m_max[0]) : null;
+        var dMinTemp = (daily.temperature_2m_min && daily.temperature_2m_min[0] !== undefined && daily.temperature_2m_min[0] !== null)
+          ? Math.round(daily.temperature_2m_min[0]) : null;
+        var dCode = (daily.weathercode && daily.weathercode[0] !== undefined && daily.weathercode[0] !== null)
+          ? daily.weathercode[0] : null;
+        var dInfo = dCode !== null ? getWmoInfo(dCode) : null;
         if (dSunrise) { lastSunrise = new Date(dSunrise); }
         if (dSunset)  { lastSunset  = new Date(dSunset); }
         updateDimming();
@@ -343,6 +351,14 @@
           elWdUv.textContent = (uvArr && uvArr[0] !== undefined && uvArr[0] !== null)
             ? Math.round(uvArr[0]) : '-';
         }
+        if (elWeatherForecast) {
+          var forecastParts = [];
+          if (dInfo && dInfo.label) { forecastParts.push(dInfo.label); }
+          if (dMinTemp !== null || dMaxTemp !== null) {
+            forecastParts.push((dMinTemp !== null ? dMinTemp : '--') + '°/' + (dMaxTemp !== null ? dMaxTemp : '--') + '°');
+          }
+          elWeatherForecast.textContent = 'PREVISIÓN HOY: ' + (forecastParts.length ? forecastParts.join(' · ') : '--');
+        }
         if (elWeatherUpdated) {
           var nowU = new Date();
           elWeatherUpdated.textContent = 'ACT: ' + pad(nowU.getHours()) + ':' + pad(nowU.getMinutes());
@@ -357,6 +373,7 @@
       .catch(function(err) {
         console.warn('[Weather] Error:', err);
         if (elWeatherLbl) { elWeatherLbl.innerHTML = '<span class="weather-error">Sin datos del tiempo</span>'; }
+        if (elWeatherForecast) { elWeatherForecast.textContent = 'PREVISIÓN HOY: --'; }
       });
   }
 

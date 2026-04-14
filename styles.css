@@ -1127,6 +1127,25 @@ body::after {
   width: 100%;
 }
 
+#weather-forecast {
+  margin-top: 8px;
+  width: 100%;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 7px;
+  font-family: var(--font-ui);
+  font-size: clamp(9px, 1.35vw, 12px);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+[data-theme="lcd"] #weather-forecast {
+  border-top-color: rgba(200, 168, 75, 0.15);
+  font-family: var(--font-digital);
+  color: rgba(200, 168, 75, 0.62);
+  letter-spacing: 0.12em;
+}
+
 .wd-row {
   display: -webkit-box;
   display: -ms-flexbox;
