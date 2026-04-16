@@ -890,8 +890,16 @@
     // Route external calendar URLs through the server-side proxy to avoid CORS blocks
     var url = feed.url;
     try {
-      var parsed = new URL(url);
-      if (parsed.hostname !== window.location.hostname) {
+      var parsedHostname = '';
+      if (typeof URL === 'function') {
+        parsedHostname = (new URL(url, window.location.origin)).hostname;
+      } else {
+        // iOS 12 fallback for URL parsing in older WebKit environments.
+        var parser = document.createElement('a');
+        parser.href = url;
+        parsedHostname = parser.hostname;
+      }
+      if (parsedHostname && parsedHostname !== window.location.hostname) {
         url = '/proxy?url=' + encodeURIComponent(url);
       }
     } catch (e) { /* keep url as-is */ }
