@@ -129,17 +129,17 @@
   };
   var elClockDay  = document.getElementById('clock-day');
   var elClockDate = document.getElementById('clock-date');
-  var elClockAmpm = document.getElementById('clock-ampm');
   var elWeatherIcon = document.getElementById('weather-icon');
   var elWeatherTemp = document.getElementById('weather-temp');
   var elWeatherLbl  = document.getElementById('weather-label');
   var elCalList     = document.getElementById('calendar-list');
 
   /* Minimalism theme elements */
-  var elMinimalismAmpm         = document.getElementById('minimalism-ampm');
   var elMinimalismDate         = document.getElementById('minimalism-date');
   var elCornerWeatherIcon      = document.getElementById('corner-weather-icon');
   var elCornerWeatherTemp      = document.getElementById('corner-weather-temp');
+  var elCornerWeatherMinMax    = document.getElementById('corner-weather-minmax');
+  var elCornerWeatherVariation = document.getElementById('corner-weather-variation');
   var elCornerWeatherLabel     = document.getElementById('corner-weather-label');
   var elMinimalismSecondsGroup = document.getElementById('minimalism-seconds-group');
   var elMinimalismSizeGroup    = document.getElementById('minimalism-size-group');
@@ -255,8 +255,6 @@
       flipValues.mm = [mm0, mm1];
       flipValues.ss = [ss0, ss1];
 
-      if (elClockAmpm) { elClockAmpm.textContent = h >= 12 ? 'PM' : 'AM'; }
-      if (elMinimalismAmpm) { elMinimalismAmpm.textContent = h >= 12 ? 'PM' : 'AM'; }
       if (elClockDay)  { elClockDay.textContent  = DAYS[now.getDay()].toUpperCase(); }
       if (elClockDate) { elClockDate.textContent = pad(now.getDate()) + '.' +
         MONTHS[now.getMonth()].substring(0, 3).toUpperCase() + '.' +
@@ -302,6 +300,7 @@
       '&longitude=' + lon +
       '&current_weather=true' +
       '&current=apparent_temperature,relative_humidity_2m,wind_speed_10m,precipitation_probability' +
+      '&hourly=temperature_2m' +
       '&daily=sunrise,sunset,uv_index_max,temperature_2m_max,temperature_2m_min,weathercode' +
       '&timezone=auto' +
       '&wind_speed_unit=kmh';
@@ -365,6 +364,100 @@
         }
         /* Populate Minimalism corner weather */
         if (elCornerWeatherTemp)  { elCornerWeatherTemp.textContent  = temp + '\u00b0C'; }
+        if (elCornerWeatherMinMax) {
+          elCornerWeatherMinMax.textContent =
+            (dMinTemp !== null ? ('MIN ' + dMinTemp + '\u00b0') : 'MIN --\u00b0') +
+            '  ·  ' +
+            (dMaxTemp !== null ? ('MAX ' + dMaxTemp + '\u00b0') : 'MAX --\u00b0');
+        }
+        if (elCornerWeatherVariation) {
+          var hourly = data.hourly || {};
+          var hourlyTemps = hourly.temperature_2m || [];
+          var hourlyTimes = hourly.time || [];
+          
+          // Generate chart from hourly data
+          if (dMinTemp !== null && dMaxTemp !== null && hourlyTemps.length > 0) {
+            // Use 24 hourly samples for the chart
+            var sampleCount = hourlyTemps.length < 24 ? hourlyTemps.length : 24;
+            if (hourlyTimes.length > 0 && hourlyTimes.length < sampleCount) {
+              sampleCount = hourlyTimes.length;
+            }
+            var samples = hourlyTemps.slice(0, sampleCount);
+            var sampleTimes = hourlyTimes.slice(0, sampleCount);
+            if (samples.length > 1) {
+              var hMinTemp = Math.min.apply(null, samples);
+              var hMaxTemp = Math.max.apply(null, samples);
+              var hRange = hMaxTemp - hMinTemp;
+              var sunriseDate = dSunrise ? new Date(dSunrise) : null;
+              var sunsetDate = dSunset ? new Date(dSunset) : null;
+              
+              // Find indices of min and max temperatures
+              var minTempIdx = -1;
+              var maxTempIdx = -1;
+              for (var j = 0; j < samples.length; j++) {
+                if (samples[j] === hMinTemp && minTempIdx === -1) minTempIdx = j;
+                if (samples[j] === hMaxTemp && maxTempIdx === -1) maxTempIdx = j;
+              }
+              
+              // Generate polyline points: x from 0 to 120 (full chart width), y from 2 to 12 (10px span)
+              var points = [];
+              var pointCount = samples.length;
+              var minXPos, minYPos, maxXPos, maxYPos;
+              for (var i = 0; i < pointCount; i++) {
+                var xPos = (i / (pointCount - 1)) * 120;
+                var tempVal = samples[i];
+                var yPos = hRange > 0 
+                  ? 12 - ((tempVal - hMinTemp) / hRange) * 10
+                  : 7;
+                var pointTime = sampleTimes[i] ? new Date(sampleTimes[i]) : null;
+                var isDayPoint = false;
+                if (pointTime && sunriseDate && sunsetDate) {
+                  isDayPoint = pointTime >= sunriseDate && pointTime <= sunsetDate;
+                } else if (pointTime) {
+                  var hh = pointTime.getHours();
+                  isDayPoint = hh >= 7 && hh < 21;
+                } else {
+                  isDayPoint = i >= 7 && i < 21;
+                }
+                points.push({ x: xPos, y: yPos, isDay: isDayPoint });
+                
+                // Store min and max positions
+                if (i === minTempIdx) { minXPos = xPos; minYPos = yPos; }
+                if (i === maxTempIdx) { maxXPos = xPos; maxYPos = yPos; }
+              }
+              
+              var segments = '';
+              for (var s = 0; s < points.length - 1; s++) {
+                var p0 = points[s];
+                var p1 = points[s + 1];
+                var segColor = (p0.isDay || p1.isDay) ? 'rgba(200,168,75,0.92)' : 'rgba(235,235,235,0.45)';
+                segments += '<line x1="' + p0.x.toFixed(1) + '" y1="' + p0.y.toFixed(1) + '" x2="' + p1.x.toFixed(1) + '" y2="' + p1.y.toFixed(1) + '" stroke="' + segColor + '" stroke-width="1.4" stroke-linecap="round"/>';
+              }
+
+              // Build SVG with marked min/max
+              var svg = '<svg viewBox="0 0 120 14" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Grafica diaria de temperatura" style="display:block;">' +
+                segments;
+              
+              // Mark minimum temperature (blue circle)
+              svg += '<circle cx="' + minXPos.toFixed(1) + '" cy="' + minYPos.toFixed(1) + '" r="2" fill="none" stroke="rgba(100,200,255,0.7)" stroke-width="1.2"/>';
+              // Mark maximum temperature (red circle)
+              svg += '<circle cx="' + maxXPos.toFixed(1) + '" cy="' + maxYPos.toFixed(1) + '" r="2" fill="none" stroke="rgba(255,150,100,0.7)" stroke-width="1.2"/>';
+              svg += '</svg>';
+              
+              elCornerWeatherVariation.innerHTML = svg;
+            } else {
+              elCornerWeatherVariation.innerHTML =
+                '<svg viewBox="0 0 120 14" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Grafica diaria de temperatura">' +
+                '<line x1="0" y1="7" x2="120" y2="7" stroke="rgba(255,255,255,0.22)" stroke-width="1"/>' +
+                '</svg>';
+            }
+          } else {
+            elCornerWeatherVariation.innerHTML =
+              '<svg viewBox="0 0 120 14" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Grafica diaria de temperatura">' +
+              '<line x1="0" y1="7" x2="120" y2="7" stroke="rgba(255,255,255,0.22)" stroke-width="1"/>' +
+              '</svg>';
+          }
+        }
         if (elCornerWeatherLabel) { elCornerWeatherLabel.textContent = info.label; }
         if (elCornerWeatherIcon)  { elCornerWeatherIcon.innerHTML    = getWeatherSVG(info.icon).replace(/width="36" height="36"/g, 'width="36" height="36"'); }
         /* Reset weather temp color to let CSS rule (var(--lcd2)) apply */
@@ -374,6 +467,13 @@
         console.warn('[Weather] Error:', err);
         if (elWeatherLbl) { elWeatherLbl.innerHTML = '<span class="weather-error">Sin datos del tiempo</span>'; }
         if (elWeatherForecast) { elWeatherForecast.textContent = 'PREVISIÓN HOY: --'; }
+        if (elCornerWeatherMinMax) { elCornerWeatherMinMax.textContent = 'MIN --\u00b0  ·  MAX --\u00b0'; }
+        if (elCornerWeatherVariation) {
+          elCornerWeatherVariation.innerHTML =
+            '<svg viewBox="0 0 120 14" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Grafica diaria de temperatura">' +
+            '<line x1="0" y1="7" x2="120" y2="7" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>' +
+            '</svg>';
+        }
       });
   }
 
@@ -1065,26 +1165,51 @@
     }
   }
 
+  var lastFocusedElement = null;
+
   function openSettings() {
+    if (isCalPanelOpen()) { closeCalPanel(); }
+    closeColorPicker();
     populateSettingsUI();
-    // iOS 12 compat: avoid classList.toggle, use explicit add/remove
-    if (elSettingsPanel.className.indexOf('is-open') === -1) {
-      elSettingsPanel.className = elSettingsPanel.className + ' is-open';
-    }
-    if (elSettingsOvl.className.indexOf('is-open') === -1) {
-      elSettingsOvl.className = elSettingsOvl.className + ' is-open';
-    }
+    lastFocusedElement = document.activeElement;
+    if (elSettingsPanel) { elSettingsPanel.classList.add('is-open'); }
+    if (elSettingsOvl) { elSettingsOvl.classList.add('is-open'); }
+    syncSettingsState();
+    setTimeout(focusFirstSettingsControl, 30);
   }
 
   function closeSettings() {
-    elSettingsPanel.className = elSettingsPanel.className.replace(' is-open', '').replace('is-open', '');
-    elSettingsOvl.className   = elSettingsOvl.className.replace(' is-open', '').replace('is-open', '');
+    if (elSettingsPanel) { elSettingsPanel.classList.remove('is-open'); }
+    if (elSettingsOvl) { elSettingsOvl.classList.remove('is-open'); }
+    syncSettingsState();
+    restoreLastFocus();
   }
 
   elSettingsBtn.addEventListener('click', openSettings);
   elSettingsClose.addEventListener('click', closeSettings);
   elSettingsOvl.addEventListener('click', closeSettings);
   elSettingsSave.addEventListener('click', saveSettings);
+
+  function getFocusableElements(root) {
+    if (!root) return [];
+    return root.querySelectorAll('button:not([disabled]), input:not([disabled]), [tabindex="0"]');
+  }
+
+  function focusFirstSettingsControl() {
+    if (!isSettingsOpen()) return;
+    var focusable = getFocusableElements(elSettingsPanel);
+    if (focusable.length > 0 && focusable[0].focus) {
+      focusable[0].focus();
+    }
+  }
+
+  function restoreLastFocus() {
+    if (lastFocusedElement && lastFocusedElement.focus) {
+      setTimeout(function() {
+        try { lastFocusedElement.focus(); } catch (e) {}
+      }, 30);
+    }
+  }
 
   /* ── Collapsible settings sections ─────────────────────── */
   (function initCollapsibleSections() {
@@ -1099,17 +1224,17 @@
       sections[i].setAttribute('data-section-key', key);
 
       if (stored[key]) {
-        sections[i].className = sections[i].className + ' is-collapsed';
+        sections[i].classList.add('is-collapsed');
       }
 
       (function(section, sKey) {
         section.querySelector('.settings-section-label').addEventListener('click', function(e) {
           if (e.target.tagName === 'INPUT') return; /* don't collapse when editing inline input */
-          var isCollapsed = section.className.indexOf('is-collapsed') !== -1;
+          var isCollapsed = section.classList.contains('is-collapsed');
           if (isCollapsed) {
-            section.className = section.className.replace(' is-collapsed', '').replace('is-collapsed', '');
+            section.classList.remove('is-collapsed');
           } else {
-            section.className = section.className + ' is-collapsed';
+            section.classList.add('is-collapsed');
           }
           /* persist state */
           var state = {};
@@ -1173,18 +1298,77 @@
 
   var elColorPicker = document.getElementById('color-picker');
 
+  function isSettingsOpen() {
+    return !!(elSettingsPanel && elSettingsPanel.classList.contains('is-open'));
+  }
+
+  function isCalPanelOpen() {
+    return !!(elCalPanel && elCalPanel.classList.contains('cp-open'));
+  }
+
+  function isColorPickerOpen() {
+    return !!(elColorPicker && elColorPicker.classList.contains('cp-open'));
+  }
+
+  function syncSettingsState() {
+    if (elSettingsBtn) {
+      elSettingsBtn.setAttribute('aria-expanded', isSettingsOpen() ? 'true' : 'false');
+    }
+    if (elSettingsPanel) {
+      elSettingsPanel.setAttribute('aria-hidden', isSettingsOpen() ? 'false' : 'true');
+    }
+  }
+
+  function syncColorPickerState() {
+    if (elColorBtn) {
+      elColorBtn.setAttribute('aria-expanded', isColorPickerOpen() ? 'true' : 'false');
+    }
+    if (elColorPicker) {
+      elColorPicker.setAttribute('aria-hidden', isColorPickerOpen() ? 'false' : 'true');
+    }
+  }
+
+  function syncCalPanelState() {
+    if (elCalPanel) {
+      elCalPanel.setAttribute('aria-hidden', isCalPanelOpen() ? 'false' : 'true');
+    }
+  }
+
+  function closeColorPicker() {
+    if (!elColorPicker) return;
+    elColorPicker.classList.remove('cp-open');
+    syncColorPickerState();
+  }
+
   function syncColorSwatches() {
     var current = document.body.getAttribute('data-color') || 'amber';
     if (!elColorPicker) return;
     var swatches = elColorPicker.querySelectorAll('.color-swatch');
     for (var i = 0; i < swatches.length; i++) {
-      swatches[i].classList.toggle('is-active', swatches[i].dataset.color === current);
+      var isActive = swatches[i].dataset.color === current;
+      if (isActive) {
+        swatches[i].classList.add('is-active');
+      } else {
+        swatches[i].classList.remove('is-active');
+      }
+      swatches[i].setAttribute('aria-selected', isActive ? 'true' : 'false');
     }
   }
 
   function toggleColorPicker() {
     if (!elColorPicker) return;
-    elColorPicker.classList.toggle('cp-open');
+    if (isSettingsOpen()) return;
+    if (isCalPanelOpen()) { closeCalPanel(); }
+    if (isColorPickerOpen()) {
+      closeColorPicker();
+    } else {
+      elColorPicker.classList.add('cp-open');
+      syncColorPickerState();
+      setTimeout(function() {
+        var active = elColorPicker.querySelector('.color-swatch.is-active');
+        if (active && active.focus) { active.focus(); }
+      }, 30);
+    }
     syncColorSwatches();
   }
 
@@ -1196,14 +1380,14 @@
       if (!swatch) return;
       applyColor(swatch.dataset.color);
       syncColorSwatches();
-      elColorPicker.classList.remove('cp-open');
+      closeColorPicker();
     });
   }
 
   document.addEventListener('click', function(e) {
-    if (!elColorPicker || !elColorPicker.classList.contains('cp-open')) return;
+    if (!isColorPickerOpen()) return;
     if (!elColorPicker.contains(e.target) && !(elColorBtn && elColorBtn.contains(e.target))) {
-      elColorPicker.classList.remove('cp-open');
+      closeColorPicker();
     }
   });
 
@@ -1226,9 +1410,12 @@
     var btns = group.querySelectorAll('.settings-group-btn');
     for (var i = 0; i < btns.length; i++) {
       var active = btns[i].getAttribute(attrName) === val;
-      btns[i].className = active
-        ? btns[i].className.replace('is-active', '').trim() + ' is-active'
-        : btns[i].className.replace(/\s*is-active/g, '');
+      if (active) {
+        btns[i].classList.add('is-active');
+      } else {
+        btns[i].classList.remove('is-active');
+      }
+      btns[i].setAttribute('aria-pressed', active ? 'true' : 'false');
     }
   }
 
@@ -1279,6 +1466,9 @@
   })();
 
   /* ── Initial calendar load ─────────────────────────── */
+  syncSettingsState();
+  syncColorPickerState();
+  syncCalPanelState();
   refreshCalendars();
 
   /* ── Periodic calendar refresh (near-real-time: every 60 s) ── */
@@ -1286,6 +1476,8 @@
 
   /* ── Calendar Slide-up Panel ───────────────────────── */
   function openCalPanel() {
+    closeSettings();
+    closeColorPicker();
     /* Dismiss the swipe hint on first use */
     var elCalHint = document.getElementById('cal-hint');
     if (elCalHint && elCalHint.style.display !== 'none') {
@@ -1296,28 +1488,26 @@
     /* Auto-expand both sections */
     for (var i = 0; i < 2; i++) {
       var sec = elCpSections[i];
-      if (sec && sec.className.indexOf('is-open') === -1) {
-        sec.className = sec.className + ' is-open';
+      if (sec && !sec.classList.contains('is-open')) {
+        sec.classList.add('is-open');
       }
     }
-    if (elCalPanel && elCalPanel.className.indexOf('cp-open') === -1) {
-      elCalPanel.className = elCalPanel.className + ' cp-open';
-    }
-    if (elCalPanelOvl && elCalPanelOvl.className.indexOf('cp-open') === -1) {
-      elCalPanelOvl.className = elCalPanelOvl.className + ' cp-open';
-    }
+    if (elCalPanel) { elCalPanel.classList.add('cp-open'); }
+    if (elCalPanelOvl) { elCalPanelOvl.classList.add('cp-open'); }
+    syncCalPanelState();
     /* Hide badge */
     if (elCalTodayBadge) {
-      elCalTodayBadge.className = (elCalTodayBadge.className + ' is-hidden').trim();
+      elCalTodayBadge.classList.add('is-hidden');
     }
   }
 
   function closeCalPanel() {
-    if (elCalPanel)    { elCalPanel.className    = elCalPanel.className.replace(/\s*cp-open/g, ''); }
-    if (elCalPanelOvl) { elCalPanelOvl.className = elCalPanelOvl.className.replace(/\s*cp-open/g, ''); }
+    if (elCalPanel) { elCalPanel.classList.remove('cp-open'); }
+    if (elCalPanelOvl) { elCalPanelOvl.classList.remove('cp-open'); }
+    syncCalPanelState();
     /* Show badge */
     if (elCalTodayBadge) {
-      elCalTodayBadge.className = elCalTodayBadge.className.replace(/\s*is-hidden/g, '').trim();
+      elCalTodayBadge.classList.remove('is-hidden');
     }
   }
 
@@ -1328,7 +1518,7 @@
   var _handleTapTarget = elCalHandleRow || elCalPanelDrag;
   if (_handleTapTarget) {
     _handleTapTarget.addEventListener('click', function() {
-      if (elCalPanel && elCalPanel.className.indexOf('cp-open') !== -1) {
+      if (isCalPanelOpen()) {
         closeCalPanel();
       } else {
         openCalPanel();
@@ -1345,10 +1535,10 @@
         hdr.addEventListener('click', function() {
           var sec = elCpSections[idx];
           if (!sec) return;
-          if (sec.className.indexOf('is-open') === -1) {
-            sec.className = sec.className + ' is-open';
+          if (!sec.classList.contains('is-open')) {
+            sec.classList.add('is-open');
           } else {
-            sec.className = sec.className.replace(/\s*is-open/g, '');
+            sec.classList.remove('is-open');
           }
         });
       })(i);
@@ -1460,7 +1650,8 @@
 
     document.addEventListener('touchend', function(e) {
       /* Ignore if settings panel is open */
-      if (elSettingsPanel && elSettingsPanel.className.indexOf('is-open') !== -1) return;
+      if (isSettingsOpen()) return;
+      if (isColorPickerOpen()) return;
       /* Ignore touches that started inside the panel */
       if (elCalPanel && elCalPanel.contains(globTarget)) return;
 
@@ -1473,6 +1664,46 @@
       }
     }, false);
   })();
+
+  document.addEventListener('keydown', function(e) {
+    var key = e.key || e.keyCode;
+    var isEscape = key === 'Escape' || key === 'Esc' || key === 27;
+    var isTab = key === 'Tab' || key === 9;
+
+    if (isEscape) {
+      if (isSettingsOpen()) {
+        closeSettings();
+        e.preventDefault();
+        return;
+      }
+      if (isColorPickerOpen()) {
+        closeColorPicker();
+        e.preventDefault();
+        return;
+      }
+      if (isCalPanelOpen()) {
+        closeCalPanel();
+        e.preventDefault();
+      }
+      return;
+    }
+
+    if (!isTab || !isSettingsOpen()) return;
+
+    var focusable = getFocusableElements(elSettingsPanel);
+    if (!focusable.length) return;
+
+    var first = focusable[0];
+    var last = focusable[focusable.length - 1];
+
+    if (e.shiftKey && document.activeElement === first) {
+      last.focus();
+      e.preventDefault();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      first.focus();
+      e.preventDefault();
+    }
+  }, false);
 
   /* ── Cal hint: hide on load if already dismissed ────── */
   (function initCalHint() {
